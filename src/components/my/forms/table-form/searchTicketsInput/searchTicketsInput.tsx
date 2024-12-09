@@ -24,7 +24,7 @@ export const SearchTicketInput = ({
         value={value}
         onChange={handleValue}
         list="tickets_keys"
-        className="text-sm sm:text-base w-auto sm:w-26 border-app-dark/20 focus-visible:ring-app-dark"
+        className="w-26 border-app-dark/20 focus-visible:ring-app-dark"
       />
       <DataListTicket value={value} />
     </span>

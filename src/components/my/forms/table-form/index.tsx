@@ -81,7 +81,7 @@ export const TableForm = () => {
                   />
                 </table.TableCell>
                 <table.TableCell>
-                  <label className="relative">
+                  <label className="relative w-16 sm:w-auto">
                     <Input
                       type="number"
                       max={100}
@@ -93,7 +93,7 @@ export const TableForm = () => {
                   </label>
                 </table.TableCell>
                 <table.TableCell>
-                  <label className="relative">
+                  <label className="relative w-16 sm:w-auto">
                     <Input
                       type="number"
                       max={100}
@@ -105,7 +105,7 @@ export const TableForm = () => {
                   </label>
                 </table.TableCell>
                 <table.TableCell>
-                  <label className="relative">
+                  <label className="relative w-16 sm:w-auto">
                     <Input
                       type="number"
                       max={100}

@@ -57,9 +57,9 @@ export default function Home() {
   return (
     <>
     <Header />
-    <main className="p-8">
+    <main className="flex flex-col item-center gap-8 p-2 sm:p-8">
       <TableForm />
-      <div className="w-1/2">
+      <div className="w-full md:w-1/2">
         <AreaChartComp
           chartConfig={chartConfig}
           chartData={chartData}
