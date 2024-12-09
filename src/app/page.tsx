@@ -2,10 +2,10 @@
 
 import { ChartConfig } from "@/components/ui/chart";
 import { AreaChartComp } from "@/components/my/charts/areaChart";
-import { PeriodKeys, StockAPIResponse } from "@/types/stockResponse";
+import { PeriodKeys } from "@/types/stockResponse";
 import { useStocks } from "@/hooks/useStocks";
-import { Input } from "@/components/ui/input";
 import { TableForm } from "@/components/my/forms";
+import { Header } from "@/components/my/header";
 
 const chartData: any[] = [
   { month: "Janeiro" },
@@ -55,9 +55,9 @@ export default function Home() {
   });
 
   return (
+    <>
+    <Header />
     <main className="p-8">
-      <h1 className="font-montserrat my-4">Financial Teste</h1>
-      
       <TableForm />
       <div className="w-1/2">
         <AreaChartComp
@@ -69,5 +69,6 @@ export default function Home() {
         />
       </div>
     </main>
+    </>
   );
 }

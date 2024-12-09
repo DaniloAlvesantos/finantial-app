@@ -90,7 +90,7 @@ export const AreaChartComp = (props: AreaChartProps) => {
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillItem2" x1="0" y1="0" x2="0" y2="1">
+              {/* <linearGradient id="fillItem2" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
                   stopColor="var(--color-item2)"
@@ -101,16 +101,16 @@ export const AreaChartComp = (props: AreaChartProps) => {
                   stopColor="var(--color-item2)"
                   stopOpacity={0.1}
                 />
-              </linearGradient>
+              </linearGradient> */}
             </defs>
-            <Area
+            {/* <Area
               dataKey="item2"
               type="natural"
               fill="url(#fillItem2)"
               fillOpacity={0.4}
               stroke="var(--color-item2)"
               stackId="a"
-            />
+            /> */}
             <Area
               dataKey="item1"
               type="natural"
