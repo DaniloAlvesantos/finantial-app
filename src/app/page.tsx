@@ -56,19 +56,21 @@ export default function Home() {
 
   return (
     <>
-    <Header />
-    <main className="flex flex-col item-center gap-8 p-2 sm:p-8">
-      <TableForm />
-      <div className="w-full md:w-1/2">
-        <AreaChartComp
-          chartConfig={chartConfig}
-          chartData={chartData}
-          title="Ultimos 12 meses"
-          descrip="Vejas o ultimo ano da empresa IBM"
-          interval="month"
-        />
-      </div>
-    </main>
+      <Header />
+      <main className="flex flex-col item-center gap-8 p-4 sm:p-8">
+        <TableForm />
+        <div className="w-full md:w-1/2">
+          {!isError ? (
+            <AreaChartComp
+              chartConfig={chartConfig}
+              chartData={chartData}
+              title="Ultimos 12 meses"
+              descrip="Vejas o ultimo ano da empresa IBM"
+              interval="month"
+            />
+          ) : null}
+        </div>
+      </main>
     </>
   );
 }

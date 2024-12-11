@@ -135,7 +135,7 @@ export const TableForm = () => {
             </span>
           </div>
         </section>
-        <table.Table>
+        <table.Table className="lg:max-w-[60%]">
           <TableFormHeader />
           <table.TableBody>
             {fields.map((field, idx) => (
@@ -155,10 +155,10 @@ export const TableForm = () => {
                       type="number"
                       max={100}
                       min={0}
-                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-5"
+                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet1`)}
                     />
-                    <Percent className="absolute right-1 top-1 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
                 <table.TableCell>
@@ -167,10 +167,10 @@ export const TableForm = () => {
                       type="number"
                       max={100}
                       min={0}
-                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-5"
+                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet2`)}
                     />
-                    <Percent className="absolute right-1 top-1 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
                 <table.TableCell>
@@ -179,10 +179,10 @@ export const TableForm = () => {
                       type="number"
                       max={100}
                       min={0}
-                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-5"
+                      className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet3`)}
                     />
-                    <Percent className="absolute right-1 top-1 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
               </table.TableRow>
