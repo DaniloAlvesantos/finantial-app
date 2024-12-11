@@ -158,7 +158,7 @@ export const TableForm = () => {
                       className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet1`)}
                     />
-                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-0 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
                 <table.TableCell>
@@ -170,7 +170,7 @@ export const TableForm = () => {
                       className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet2`)}
                     />
-                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-0 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
                 <table.TableCell>
@@ -182,7 +182,7 @@ export const TableForm = () => {
                       className="border-app-dark/20 focus-visible:ring-app-dark text-right pr-2 sm:pr-5 relative"
                       {...form.register(`tickets.${idx}.wallet3`)}
                     />
-                    <Percent className="absolute right-1 top-2 sm:top-[.6rem] size-4 text-app-dark/80" />
+                    <Percent className="absolute right-1 top-0 sm:top-[.6rem] size-4 text-app-dark/80" />
                   </label>
                 </table.TableCell>
               </table.TableRow>
