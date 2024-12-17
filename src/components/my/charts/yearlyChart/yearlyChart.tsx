@@ -1,5 +1,5 @@
 import { TrendingUp } from "lucide-react";
-import { CartesianGrid, XAxis, Area, AreaChart } from "recharts";
+import { CartesianGrid, XAxis, Area, AreaChart, ResponsiveContainer } from "recharts";
 import {
   Card,
   CardHeader,
@@ -25,7 +25,12 @@ export const AreaChartComp = (props: AreaChartProps) => {
 
   const lastTwoMonth = chartData.slice(-2).reverse();
   const calc = new Calcs();
-  const trendy = calc.trendy(lastTwoMonth[1].item1, lastTwoMonth[0].item1);
+  const trendy = calc.trendy({
+    previousValue: lastTwoMonth[1].item1,
+    currentValue: lastTwoMonth[0].item1,
+  });
+
+  console.log(chartData)
 
   return (
     <Card>
@@ -35,13 +40,10 @@ export const AreaChartComp = (props: AreaChartProps) => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
+          <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             accessibilityLayer
             data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
@@ -120,6 +122,7 @@ export const AreaChartComp = (props: AreaChartProps) => {
               stackId="a"
             />
           </AreaChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
       <CardFooter>

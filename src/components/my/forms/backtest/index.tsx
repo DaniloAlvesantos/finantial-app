@@ -2,14 +2,32 @@ import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { SearchTicketInput } from "./searchTicketsInput/searchTicketsInput";
 import { TableFormHeader } from "./table/tableHeader";
 import { Percent } from "lucide-react";
-import { currencyFormatter } from "@/lib/currencyFormatter";
 
-import { table, Button, Input, Label, Select } from "@/components/ui";
+import { table, Button, Input } from "@/components/ui";
 
-import { months, years } from "./budget/type";
+import { Period } from "./period/period";
+import { Budget } from "./budget/budget";
+import { Configs } from "./configs/configs";
 
 export type TicketFormValues = {
   initialInvestiment: number;
+  monthlyInvestiment: number;
+  period: {
+    from: {
+      month: string;
+      year: string;
+    };
+    to: {
+      month: string;
+      year: string;
+    };
+  };
+  config: {
+    IPCA: boolean;
+    CDI: boolean;
+    IBOVESPA: boolean;
+    PROCEEDS: boolean;
+  };
   tickets: {
     ticket: string;
     wallet1: number | null;
@@ -57,83 +75,12 @@ export const TableForm = () => {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <section>
-          <div>
-            <span className="flex sm:flex-col">
-              <Label htmlFor="initialInvestiment" className="font-poppins m-1">
-                Aporte Inicial
-              </Label>
-              <Input
-                {...form.register("initialInvestiment")}
-                id="initialInvestiment"
-                type="number"
-                className="w-24"
-              />
-              <p className="font-montserrat text-sm text-app-green m-1">
-                {currencyFormatter.format(
-                  Number(form.watch("initialInvestiment"))
-                )}
-              </p>
-            </span>
+        <section className="">
+          <div className="flex flex-col gap-8 sm:flex-row sm:gap-[20%]">
+            <Budget />
+            <Period />
           </div>
-          <div>
-            <p>Período</p>
-            <span className="flex items-center gap-2 my-2">
-              <Label className="mr-1 font-poppins">De:</Label>
-              <Select.Select>
-                <Select.SelectTrigger className="w-[180px] font-montserrat">
-                  <Select.SelectValue placeholder="Mês" />
-                </Select.SelectTrigger>
-                <Select.SelectContent className="font-montserrat">
-                  {months.map((item, idx) => (
-                    <Select.SelectItem value={item.value} key={idx}>
-                      {item.month}
-                    </Select.SelectItem>
-                  ))}
-                </Select.SelectContent>
-              </Select.Select>
-              <Select.Select>
-                <Select.SelectTrigger className="w-[180px] font-montserrat">
-                  <Select.SelectValue placeholder="Ano" />
-                </Select.SelectTrigger>
-                <Select.SelectContent className="font-montserrat">
-                  {years.map((item, idx) => (
-                    <Select.SelectItem value={String(item)} key={idx}>
-                      {item}
-                    </Select.SelectItem>
-                  ))}
-                </Select.SelectContent>
-              </Select.Select>
-            </span>
-
-            <span className="flex items-center gap-2">
-              <Label className="font-poppins">Até:</Label>
-              <Select.Select>
-                <Select.SelectTrigger className="w-[180px] font-montserrat">
-                  <Select.SelectValue placeholder="Mês" />
-                </Select.SelectTrigger>
-                <Select.SelectContent className="font-montserrat">
-                  {months.map((item, idx) => (
-                    <Select.SelectItem value={item.value} key={idx}>
-                      {item.month}
-                    </Select.SelectItem>
-                  ))}
-                </Select.SelectContent>
-              </Select.Select>
-              <Select.Select>
-                <Select.SelectTrigger className="w-[180px] font-montserrat">
-                  <Select.SelectValue placeholder="Ano" />
-                </Select.SelectTrigger>
-                <Select.SelectContent className="font-montserrat">
-                  {years.map((item, idx) => (
-                    <Select.SelectItem value={String(item)} key={idx}>
-                      {item}
-                    </Select.SelectItem>
-                  ))}
-                </Select.SelectContent>
-              </Select.Select>
-            </span>
-          </div>
+          <Configs />
         </section>
         <table.Table>
           <TableFormHeader />
