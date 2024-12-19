@@ -29,7 +29,15 @@ export interface timelineChartProps {
 
 export const TimelineChart = (props: timelineChartProps) => {
   const { chartConfig, chartData, descrip, title } = props;
-  
+
+  if (!chartData || !chartData.length) {
+    return;
+  }
+
+  const howManyItems = Object.keys(chartData[0]).reduce((acc, key) => {
+    return key.includes("item") ? acc + 1 : acc;
+  }, 0);
+
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
@@ -45,22 +53,34 @@ export const TimelineChart = (props: timelineChartProps) => {
         >
           <AreaChart data={chartData}>
             <defs>
-              <linearGradient id="fillItem1" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-item1)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-item1)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
+              {Array.from({ length: howManyItems }).map((_, idx) => {
+                const i = idx + 1;
+                return (
+                  <linearGradient
+                    id={"fillItem" + i}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                    key={idx}
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={`var(--color-item${i})`}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={`var(--color-item${i})`}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                );
+              })}
             </defs>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="year"
+              dataKey="period"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -68,7 +88,7 @@ export const TimelineChart = (props: timelineChartProps) => {
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return date.toLocaleDateString("en-US", {
-                  year:"numeric"
+                  year: "numeric",
                 });
               }}
             />
@@ -103,14 +123,21 @@ export const TimelineChart = (props: timelineChartProps) => {
                 />
               }
             />
-            <Area
-              dataKey="item1"
-              type="natural"
-              fill="url(#fillItem1)"
-              fillOpacity={0.4}
-              stroke="var(--color-item1)"
-              stackId="a"
-            />
+            {Array.from({ length: howManyItems }).map((_, idx) => {
+              const i = idx + 1;
+              return (
+                <Area
+                  dataKey={`item${i}`}
+                  type="natural"
+                  fill={`url(#fillItem${i})`}
+                  fillOpacity={0.4}
+                  stroke={`var(--color-item${i})`}
+                  stackId="a"
+                  key={idx}
+                />
+              );
+            })}
+
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>
         </ChartContainer>

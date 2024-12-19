@@ -1,58 +1,67 @@
-import { Select, Label } from "@/components/ui";
+import { Select, Label, Form } from "@/components/ui";
 import { months, years } from "./type";
-import { useFormContext } from "react-hook-form";
+import { useBackTestForm } from "@/hooks/useFormProvider";
 import { memo } from "react";
+import { TicketFormValues } from "../type";
+import { Path } from "react-hook-form";
 
 interface SelectCompProps {
   placeholder: string;
   data: any[];
   type: "Month" | "Year";
-  value: string;
-  onChange: (value: string) => void;
+  formKey: Path<TicketFormValues>;
 }
 
 const SelectComp = memo((props: SelectCompProps) => {
-  const { data, placeholder, type, onChange, value } = props;
-
+  const { data, placeholder, type, formKey } = props;
+  const { control } = useBackTestForm();
   return (
-    <Select.Select value={value} onValueChange={onChange}>
-      <Select.SelectTrigger className="w-[180px] font-montserrat">
-        <Select.SelectValue placeholder={placeholder} />
-      </Select.SelectTrigger>
-      <Select.SelectContent className="font-montserrat">
-        {type === "Month"
-          ? data.map((item, idx) => (
-              <Select.SelectItem value={item.value} key={idx}>
-                {item.month}
-              </Select.SelectItem>
-            ))
-          : data.map((item, idx) => (
-              <Select.SelectItem value={String(item)} key={idx}>
-                {item}
-              </Select.SelectItem>
-            ))}
-      </Select.SelectContent>
-    </Select.Select>
+    <Form.FormField
+      control={control}
+      name={formKey}
+      render={({ field }) => (
+        <Form.FormItem>
+          <Select.Select onValueChange={field.onChange}>
+            <Form.FormControl>
+              <Select.SelectTrigger className="w-[180px] font-montserrat">
+                <Select.SelectValue placeholder={placeholder} />
+              </Select.SelectTrigger>
+            </Form.FormControl>
+            <Select.SelectContent className="font-montserrat">
+              {type === "Month"
+                ? data.map((item, idx) => (
+                    <Select.SelectItem value={item.value} key={idx}>
+                      {item.month}
+                    </Select.SelectItem>
+                  ))
+                : data.map((item, idx) => (
+                    <Select.SelectItem value={String(item)} key={idx}>
+                      {item}
+                    </Select.SelectItem>
+                  ))}
+            </Select.SelectContent>
+          </Select.Select>
+          <Form.FormMessage />
+        </Form.FormItem>
+      )}
+    />
   );
 });
 
 export const Period = () => {
-  const { watch, setValue } = useFormContext();
   return (
     <div>
       <p className="font-poppins">Período</p>
       <span className="flex items-center gap-2 my-2">
         <Label className="mr-1 font-poppins">De:</Label>
         <SelectComp
-          value={watch("period.from.month")}
-          onChange={(value) => setValue("period.from.month", value)}
+          formKey="period.from.month"
           placeholder="Mês"
           type="Month"
           data={months}
         />
         <SelectComp
-          value={watch("period.from.year")}
-          onChange={(value) => setValue("period.from.year", value)}
+          formKey="period.from.year"
           placeholder="Ano"
           type="Year"
           data={years}
@@ -62,15 +71,13 @@ export const Period = () => {
       <span className="flex items-center gap-2">
         <Label className="font-poppins">Até:</Label>
         <SelectComp
-          value={watch("period.to.month")}
-          onChange={(value) => setValue("period.to.month", value)}
+          formKey="period.to.month"
           placeholder="Mês"
           type="Month"
           data={months}
         />
         <SelectComp
-          value={watch("period.to.year")}
-          onChange={(value) => setValue("period.to.year", value)}
+          formKey="period.to.year"
           placeholder="Ano"
           type="Year"
           data={years}
