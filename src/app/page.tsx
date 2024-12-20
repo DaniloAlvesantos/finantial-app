@@ -9,13 +9,14 @@ import { Header } from "@/components/my/header";
 import { Calcs } from "@/utils/calc";
 import { TimelineChart } from "@/components/my/charts/timeline/timeline";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui";
 import {
   TicketFormValues,
   backtestSchema,
 } from "@/components/my/forms/backtest/type";
+import { Spin } from "@/components/my/loading/spin/spin";
 
 const chartData: any[] = [];
 
@@ -42,6 +43,8 @@ export default function Home() {
       })),
     },
   });
+  const [chartState, setChartState] = useState<any[]>([]);
+  const { data, error, isError } = useStocks("IBM");
 
   useEffect(() => {
     console.count("Home");
@@ -78,13 +81,18 @@ export default function Home() {
         period: String(periods[idx]),
       });
     });
-  }, [form]);
 
-  const { data, error, isError } = useStocks("IBM");
+    setChartState(chartData);
+  }, [data]);
+
   const submit: SubmitHandler<TicketFormValues> = (values) => {
     console.log(values);
-    
+
+    for (let i = 0; i < values.tickets.length; i++) {
+      console.count("Tickets fields");
+    }
   };
+
   return (
     <>
       <Header />
@@ -92,17 +100,17 @@ export default function Home() {
         <Form.Form {...form}>
           <TableForm onSubmit={submit} />
           <div className="w-full">
-            {chartData.length ? (
+            {data ? (
               <div>
                 <TimelineChart
                   chartConfig={chartConfig}
-                  chartData={chartData}
+                  chartData={chartState}
                   title="Linha do tempo"
                   descrip="Veja os valores de periodo completo"
                 />
               </div>
             ) : (
-              "Carregando..."
+              <Spin />
             )}
           </div>
         </Form.Form>

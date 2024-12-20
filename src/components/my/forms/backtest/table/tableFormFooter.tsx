@@ -1,11 +1,13 @@
 import { table, Button } from "@/components/ui";
 import { useBackTestForm } from "@/hooks/useFormProvider";
 
-interface TableFooterProps {
+interface TableFormFooterProps {
   handleTicketsQuant: () => void;
 }
 
-export const TableFooter = ({ handleTicketsQuant }: TableFooterProps) => {
+export const TableFormFooter = ({
+  handleTicketsQuant,
+}: TableFormFooterProps) => {
   const { watch } = useBackTestForm();
 
   const tickets = watch("tickets");
