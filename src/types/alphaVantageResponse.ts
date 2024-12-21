@@ -44,7 +44,7 @@ export interface TimeSeriesDailyData {
   };
 }
 
-export interface StockAPIResponse {
+export interface AlphaVantageResponse {
   [PeriodKeys.metaData]: {
     [key in MetaDataStocks]: string;
   };
