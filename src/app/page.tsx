@@ -11,6 +11,7 @@ import { SubmitHandler } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { TicketFormValues } from "@/components/my/forms/backtest/type";
 import { Spin } from "@/components/my/loading/spin/spin";
+import { Footer } from "@/components/my/footer/footer";
 
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
@@ -96,6 +97,7 @@ export default function Home() {
           )}
         </div>
       </main>
+      <Footer />
     </>
   );
 }

@@ -51,7 +51,7 @@ export const TimelineChart = (props: timelineChartProps) => {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={chartData}>
+          <AreaChart data={chartData} >
             <defs>
               {Array.from({ length: howManyItems }).map((_, idx) => {
                 const i = idx + 1;
@@ -84,11 +84,11 @@ export const TimelineChart = (props: timelineChartProps) => {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              minTickGap={32}
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return date.toLocaleDateString("en-US", {
                   year: "numeric",
+                  month:"short"
                 });
               }}
             />
