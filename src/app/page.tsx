@@ -70,6 +70,8 @@ export default function Home() {
       initialInvestiment: 100,
     });
 
+    console.log(results)
+
     periods.forEach((_, idx) => {
       chartData.push({
         item1: Number(results.timeline[idx]),

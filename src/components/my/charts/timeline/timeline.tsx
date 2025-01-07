@@ -6,6 +6,7 @@ import {
   AreaChart,
   CartesianGrid,
   XAxis,
+  YAxis,
   ResponsiveContainer,
 } from "recharts";
 
@@ -60,13 +61,17 @@ export const TimelineChart = (props: timelineChartProps) => {
           className="aspect-auto h-[250px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} accessibilityLayer>
+            <AreaChart
+              data={chartData}
+              accessibilityLayer
+              margin={{ left: 12, right: 12 }}
+            >
               <CartesianGrid vertical={false} />
               <XAxis
                 dataKey="period"
                 tickLine={false}
                 axisLine={false}
-                tickMargin={8}
+                tickMargin={2}
                 tickFormatter={(value) => {
                   const date = new Date(value);
                   return date
@@ -78,6 +83,19 @@ export const TimelineChart = (props: timelineChartProps) => {
                 }}
                 interval={xAxiosInterval}
                 className="font-poppins font-normal text-xs"
+                angle={-35}
+                textAnchor="end"
+                tick={{ fontSize: 10 }}
+                minTickGap={1000}
+                tickCount={5}
+                // scale="sqrt"
+              />
+              <YAxis
+                axisLine={{ stroke: "#E5E7EB" }}
+                tickMargin={8}
+                tickFormatter={(value) => currencyFormatter.format(value)}
+                tick={{ fill: "#6B7280", fontSize: 12 }}
+                className="font-poppins font-normal"
               />
               <ChartTooltip
                 cursor={false}
@@ -151,7 +169,7 @@ export const TimelineChart = (props: timelineChartProps) => {
                 );
               })}
 
-              <ChartLegend content={<ChartLegendContent />} />
+              <ChartLegend content={<ChartLegendContent />}  />
             </AreaChart>
           </ResponsiveContainer>
         </ChartContainer>
