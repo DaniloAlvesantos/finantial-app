@@ -25,19 +25,21 @@ export const backtestSchema = z.object({
     .array(
       z.object({
         ticket: z.string(),
-        wallet1: z.string().nullable(),
-        wallet2: z.string().nullable().optional(),
-        wallet3: z.string().nullable().optional(),
+        wallet1: z.number().nullable(),
+        wallet2: z.number().nullable().optional(),
+        wallet3: z.number().nullable().optional(),
       })
     )
     .superRefine((val, ctx) => {
       const hasEmptyTicketsWithPercentage = val.some(
         (fields, idx) =>
-          (!fields.ticket.trim().length && fields.wallet1?.length) ||
-          fields.wallet2?.length ||
-          fields.wallet3?.length
+          (!fields.ticket.trim().length && fields.wallet1) ||
+          fields.wallet2 ||
+          fields.wallet3
       );
-      const atLeastOneFilled = val.some((ticket) => ticket.ticket.length && ticket.wallet1?.length)
+      const atLeastOneFilled = val.some(
+        (ticket) => ticket.ticket.length && ticket.wallet1
+      );
 
       if (hasEmptyTicketsWithPercentage) {
         ctx.addIssue({
@@ -46,12 +48,12 @@ export const backtestSchema = z.object({
           fatal: true,
         });
       }
-      if(!atLeastOneFilled) {
+      if (!atLeastOneFilled) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Preencher pelo menos uma alocação!",
-          fatal: true
-        })
+          fatal: true,
+        });
       }
     })
     .transform((val) =>

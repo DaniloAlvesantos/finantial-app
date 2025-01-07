@@ -15,7 +15,8 @@ import { Footer } from "@/components/my/footer/footer";
 
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
-  const { data, error, isError } = useStocks("IBM");
+  const [tickets, setTickets] = useState<string>("");
+  const { data, error, isError } = useStocks(tickets);
 
   const chartData: any[] = [];
 
@@ -32,6 +33,16 @@ export default function Home() {
 
   useEffect(() => {
     console.count("Home");
+  }, []);
+
+  const submit: SubmitHandler<TicketFormValues> = (values) => {
+    console.log(values);
+    setTickets(values.tickets[0].ticket);
+
+    for (let i = 0; i < values.tickets.length; i++) {
+      console.count("Tickets fields");
+    }
+    
     if (isError || !data) {
       return console.log(error);
     }
@@ -47,10 +58,10 @@ export default function Home() {
     const periods = Object.keys(monthlyData)
       .sort()
       .map((date) => new Date(date))
-      .filter((date) => date.getFullYear() >= 2023);
+      .filter((date) => date.getFullYear() >= 2000);
     const periodValues = Object.entries(monthlyData)
       .sort()
-      .filter((item) => new Date(item[0]).getFullYear() >= 2023)
+      .filter((item) => new Date(item[0]).getFullYear() >= 2000)
       .map((item) => Number(item[1]["5. adjusted close"]));
     const calcs = new Calcs();
     const results = calcs.generalValues({
@@ -67,14 +78,6 @@ export default function Home() {
     });
 
     setChartState(chartData);
-  }, [data]);
-
-  const submit: SubmitHandler<TicketFormValues> = (values) => {
-    console.log(values);
-
-    for (let i = 0; i < values.tickets.length; i++) {
-      console.count("Tickets fields");
-    }
   };
 
   return (
@@ -83,7 +86,7 @@ export default function Home() {
       <main className="flex flex-col item-center gap-8 p-4 sm:p-8">
         <BacktestForm onSubmit={submit} />
         <div className="w-full">
-          {data ? (
+          {chartState ? (
             <div>
               <TimelineChart
                 chartConfig={chartConfig}

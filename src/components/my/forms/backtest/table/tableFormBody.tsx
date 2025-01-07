@@ -4,6 +4,7 @@ import { SearchTicketInput } from "../searchTicketsInput/searchTicketsInput";
 import { FieldArrayWithId } from "react-hook-form";
 import { TicketFormValues } from "../type";
 import { useBackTestForm } from "@/hooks/useFormProvider";
+import { PercentTicketsInput } from "../percentTicketsInput/percentTicketsInput";
 
 interface TableFormBodyProps {
   fields: FieldArrayWithId<TicketFormValues[]>[];
@@ -34,40 +35,13 @@ export const TableFormBody = ({ fields }: TableFormBodyProps) => {
             />
           </table.TableCell>
           <table.TableCell>
-            <label className="relative w-16 sm:w-auto flex items-center">
-              <Input
-                type="number"
-                max={100}
-                min={0}
-                className="border-app-dark/20 focus-visible:ring-app-dark text-right sm:pr-5 relative"
-                {...register(`tickets.${idx}.wallet1`)}
-              />
-              <Percent className="absolute right-1.5 size-4 text-app-dark/80" />
-            </label>
+            <PercentTicketsInput formKey={`tickets.${idx}.wallet1`} />
           </table.TableCell>
           <table.TableCell>
-            <label className="relative w-16 sm:w-auto flex items-center">
-              <Input
-                type="number"
-                max={100}
-                min={0}
-                className="border-app-dark/20 focus-visible:ring-app-dark text-right sm:pr-5 relative"
-                {...register(`tickets.${idx}.wallet2`)}
-              />
-              <Percent className="absolute right-1.5 size-4 text-app-dark/80" />
-            </label>
+            <PercentTicketsInput formKey={`tickets.${idx}.wallet2`} />
           </table.TableCell>
           <table.TableCell>
-            <label className="relative w-16 sm:w-auto flex items-center">
-              <Input
-                type="number"
-                max={100}
-                min={0}
-                className="border-app-dark/20 focus-visible:ring-app-dark text-right sm:pr-5 relative"
-                {...register(`tickets.${idx}.wallet3`)}
-              />
-              <Percent className="absolute right-1.5 size-4 text-app-dark/80" />
-            </label>
+            <PercentTicketsInput formKey={`tickets.${idx}.wallet3`} />
           </table.TableCell>
         </table.TableRow>
       ))}
