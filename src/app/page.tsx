@@ -1,83 +1,98 @@
 "use client";
 
-import { ChartConfig } from "@/components/ui/chart";
 import { PeriodKeys } from "@/types/alphaVantageResponse";
-import { useStocks } from "@/hooks/useStocks";
 import { BacktestForm } from "@/components/my/forms";
 import { Header } from "@/components/my/header";
 import { Calcs } from "@/utils/calc";
 import { TimelineChart } from "@/components/my/charts/timeline/timeline";
 import { SubmitHandler } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { TicketFormValues } from "@/components/my/forms/backtest/type";
 import { Spin } from "@/components/my/loading/spin/spin";
 import { Footer } from "@/components/my/footer/footer";
+import { useMultStocks } from "@/hooks/useMultStocks";
 
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<string>("");
-  const { data, error, isError } = useStocks(tickets);
+  const [tickets, setTickets] = useState<string[]>();
+  const stocks = useMultStocks(["IBM", "TSCO.LON"]);
+  console.log(stocks);
 
   const chartData: any[] = [];
 
-  let chartConfig = {
-    item1: {
-      label: "IBM",
-      color: "hsl(var(--chart-1))",
-    },
-    item2: {
-      label: "KO",
-      color: "hsl(var(--chart-2))",
-    },
-  } satisfies ChartConfig;
-
-  useEffect(() => {
-    console.count("Home");
-  }, []);
-
   const submit: SubmitHandler<TicketFormValues> = (values) => {
-    console.log(values);
-    setTickets(values.tickets[0].ticket);
-
-    for (let i = 0; i < values.tickets.length; i++) {
-      console.count("Tickets fields");
-    }
-    
-    if (isError || !data) {
-      return console.log(error);
-    }
-
-    const monthlyData = data[PeriodKeys.monthly];
-    if (!monthlyData) {
-      console.log("Monthly data is undefined.");
-      return;
-    }
-
-    // The last 12 months from it
-    // const lastYear = Object.entries(monthlyData).sort().reverse().slice(-12);
-    const periods = Object.keys(monthlyData)
-      .sort()
-      .map((date) => new Date(date))
-      .filter((date) => date.getFullYear() >= 2000);
-    const periodValues = Object.entries(monthlyData)
-      .sort()
-      .filter((item) => new Date(item[0]).getFullYear() >= 2000)
-      .map((item) => Number(item[1]["5. adjusted close"]));
-    const calcs = new Calcs();
-    const results = calcs.generalValues({
-      periodValues,
-      periods,
-      initialInvestiment: 100,
+    // GETTING TICKETS
+    const ticketsVal: string[] = [];
+    values.tickets.map((ticket) => {
+      ticketsVal.push(ticket.ticket);
     });
 
-    console.log(results)
+    setTickets(ticketsVal);
 
-    periods.forEach((_, idx) => {
-      chartData.push({
-        item1: Number(results.timeline[idx]),
-        period: String(periods[idx]),
+    // SETTING QUERY VALIDATIONS
+    const validations: { isError: boolean; error: Error | null } = {
+      isError: false,
+      error: null,
+    };
+
+    Array.from({ length: stocks.query.length }, (_, i) => {
+      if (stocks.query[i].isError) {
+        validations.isError = true;
+        validations.error = stocks.query[i].error;
+      }
+      return null;
+    });
+
+    if (validations.isError || !stocks) {
+      return console.log(validations.error);
+    }
+
+    const results: { ticket: string; res: { value: number; date: Date } }[] =
+      [];
+
+    // LOOP
+    for (let idx = 0; idx < values.tickets.length; idx++) {
+      // GETTING VALUES
+      const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
+      if (!monthlyData) {
+        console.log("Monthly data is undefined.");
+        return;
+      }
+
+      // FILTERING PERIODS
+      const periods = Object.keys(monthlyData)
+        .sort()
+        .map((date) => new Date(date))
+        .filter((date) => date.getFullYear() >= 2000);
+
+      const periodValues = Object.entries(monthlyData)
+        .sort()
+        .filter((item) => new Date(item[0]).getFullYear() >= 2000)
+        .map((item) => Number(item[1]["5. adjusted close"]));
+
+      // CALCS
+      const calcs = new Calcs();
+      const calcRes = calcs.generalValues({
+        periodValues,
+        periods,
+        initialInvestiment:
+          Number(values.budget.initialInvestiment) *
+          (Number(values.tickets[idx].wallet1) / 100),
       });
-    });
+      console.log(calcRes);
+
+      // PERCENTAGE
+
+      console.log(values);
+      periods.forEach((_, i) => {
+        chartData.push({
+          item1: Number(calcRes.timeline[i].value),
+          period: String(calcRes.timeline[i].date),
+        });
+      });
+
+      console.log(results);
+    }
 
     setChartState(chartData);
   };
@@ -91,7 +106,6 @@ export default function Home() {
           {chartState ? (
             <div>
               <TimelineChart
-                chartConfig={chartConfig}
                 chartData={chartState}
                 title="Linha do tempo"
                 descrip="Veja os valores de periodo completo"

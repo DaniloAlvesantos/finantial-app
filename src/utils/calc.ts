@@ -40,7 +40,7 @@ export class Calcs {
       throw new Error("Invalid dates in periods array.");
     }
 
-    const timeline = [initialInvestiment];
+    const timeline = [{ value: initialInvestiment, date: periods[0] }];
     const drawdowns = [];
     const percentReturns = [];
 
@@ -57,14 +57,14 @@ export class Calcs {
         previousValue,
         prevInvest: investmentValue,
       });
-      timeline.push(investmentValue);
+      timeline.push({ value: investmentValue, date: periods[i] });
 
       const currentPeriodTrendy = this.trendy({ currentValue, previousValue });
-      percentReturns.push(currentPeriodTrendy);
+      percentReturns.push({ value: currentPeriodTrendy, date: periods[i] });
 
       maxValue = Math.max(maxValue, investmentValue);
       const currentDrawdown = (maxValue - investmentValue) / maxValue;
-      drawdowns.push(currentDrawdown);
+      drawdowns.push({ value: currentDrawdown, date: periods[i] });
       maxDrawdows = Math.max(maxDrawdows, currentDrawdown);
     }
 
@@ -82,13 +82,14 @@ export class Calcs {
 
     const avgReturn =
       percentReturns.length > 0
-        ? percentReturns.reduce((a, b) => a + b, 0) / percentReturns.length
+        ? percentReturns.reduce((a, b) => a + b.value, 0) /
+          percentReturns.length
         : 0;
 
     const variance =
       percentReturns.length > 1
         ? percentReturns.reduce(
-            (sum, r) => sum + Math.pow(r - avgReturn, 2),
+            (sum, r) => sum + Math.pow(r.value - avgReturn, 2),
             0
           ) /
           (percentReturns.length - 1)
@@ -100,10 +101,17 @@ export class Calcs {
       timeline,
       cumulativeReturn: Number(cumulativeReturn.toFixed(2)),
       maxDrawdown: Number((maxDrawdows * 100).toFixed(2)),
-      drawdowns: drawdowns.map((d) => Number((d * 100).toFixed(2))),
+      drawdowns: drawdowns.map((d) => ({
+        ...d,
+        value: Number((d.value * 100).toFixed(2)),
+      })),
       annualVolatility: Number(annualVolatility.toFixed(2)),
       cagr: Number(cagr.toFixed(2)),
-      annualReturns: percentReturns.map((r) => Number(r.toFixed(2))),
+      annualReturns: percentReturns.map((r) => ({
+        ...r,
+        value: Number(r.value.toFixed(2)),
+      })),
+      periods,
     };
   }
 }

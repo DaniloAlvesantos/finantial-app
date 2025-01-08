@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   Area,
-  AreaChart,
+  ComposedChart,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -18,7 +18,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -26,16 +25,16 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { currencyFormatter } from "@/lib/currencyFormatter";
+import { chartConfigDefault } from "../chartTypes"
 
 export interface timelineChartProps {
-  chartConfig: ChartConfig;
   chartData: any[];
   title: string;
   descrip: string;
 }
 
 export const TimelineChart = (props: timelineChartProps) => {
-  const { chartConfig, chartData, descrip, title } = props;
+  const { chartData, descrip, title } = props;
 
   if (!chartData || !chartData.length) {
     return;
@@ -57,11 +56,11 @@ export const TimelineChart = (props: timelineChartProps) => {
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
-          config={chartConfig}
+          config={chartConfigDefault}
           className="aspect-auto h-[250px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <ComposedChart
               data={chartData}
               accessibilityLayer
               margin={{ left: 12, right: 12 }}
@@ -118,7 +117,7 @@ export const TimelineChart = (props: timelineChartProps) => {
                             } as React.CSSProperties
                           }
                         />
-                        {chartConfig[name as keyof typeof chartConfig]?.label ||
+                        {chartConfigDefault[name as keyof typeof chartConfigDefault]?.label ||
                           name}
                         <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
                           {currencyFormatter.format(Number(value))}
@@ -170,7 +169,7 @@ export const TimelineChart = (props: timelineChartProps) => {
               })}
 
               <ChartLegend content={<ChartLegendContent />}  />
-            </AreaChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
