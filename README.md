@@ -1,10 +1,10 @@
 # Todo
 
 - [X] Make the submit function works with charts
-    - [ ] Make the calc with the current values
-- [ ] Separeble the percent of each ticket
+    - [X] Make the calc with the current values
+- [X] Separeble the percent of each ticket
     - [ ] Validate the percent ticket cannot be empty
-- [ ] Mult queries stocks
+- [X] Mult queries stocks
 - [X] Fix the bottom chart tracker
 
 ## ChartData Setting

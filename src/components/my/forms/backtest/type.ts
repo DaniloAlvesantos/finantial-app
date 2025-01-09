@@ -25,9 +25,9 @@ export const backtestSchema = z.object({
     .array(
       z.object({
         ticket: z.string(),
-        wallet1: z.number().nullable(),
-        wallet2: z.number().nullable().optional(),
-        wallet3: z.number().nullable().optional(),
+        wallet1: z.string().nullable(),
+        wallet2: z.string().nullable().optional(),
+        wallet3: z.string().nullable().optional(),
       })
     )
     .superRefine((val, ctx) => {

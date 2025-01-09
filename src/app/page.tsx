@@ -15,13 +15,11 @@ import { useMultStocks } from "@/hooks/useMultStocks";
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
   const [tickets, setTickets] = useState<string[]>();
-  const stocks = useMultStocks(["IBM", "TSCO.LON"]);
-  console.log(stocks);
-
+  const stocks = useMultStocks(["TSCO.LON"]);
+  
   const chartData: any[] = [];
 
   const submit: SubmitHandler<TicketFormValues> = (values) => {
-    // GETTING TICKETS
     const ticketsVal: string[] = [];
     values.tickets.map((ticket) => {
       ticketsVal.push(ticket.ticket);
@@ -29,7 +27,6 @@ export default function Home() {
 
     setTickets(ticketsVal);
 
-    // SETTING QUERY VALIDATIONS
     const validations: { isError: boolean; error: Error | null } = {
       isError: false,
       error: null,
@@ -47,30 +44,27 @@ export default function Home() {
       return console.log(validations.error);
     }
 
-    const results: { ticket: string; res: { value: number; date: Date } }[] =
-      [];
+    // Initialize a total sum for the wallet's results
+    const totalSum: { period: string; value: number }[] = [];
 
     // LOOP
     for (let idx = 0; idx < values.tickets.length; idx++) {
-      // GETTING VALUES
       const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
       if (!monthlyData) {
         console.log("Monthly data is undefined.");
         return;
       }
 
-      // FILTERING PERIODS
       const periods = Object.keys(monthlyData)
         .sort()
         .map((date) => new Date(date))
-        .filter((date) => date.getFullYear() >= 2000);
+        .filter((date) => date.getFullYear() >= 2015);
 
       const periodValues = Object.entries(monthlyData)
         .sort()
-        .filter((item) => new Date(item[0]).getFullYear() >= 2000)
+        .filter((item) => new Date(item[0]).getFullYear() >= 2015)
         .map((item) => Number(item[1]["5. adjusted close"]));
 
-      // CALCS
       const calcs = new Calcs();
       const calcRes = calcs.generalValues({
         periodValues,
@@ -79,22 +73,33 @@ export default function Home() {
           Number(values.budget.initialInvestiment) *
           (Number(values.tickets[idx].wallet1) / 100),
       });
+
       console.log(calcRes);
 
-      // PERCENTAGE
-
-      console.log(values);
       periods.forEach((_, i) => {
-        chartData.push({
-          item1: Number(calcRes.timeline[i].value),
-          period: String(calcRes.timeline[i].date),
-        });
+        const existingPeriod = totalSum.find(
+          (item) => item.period === String(calcRes.timeline[i].date)
+        );
+        if (existingPeriod) {
+          // Add to existing period value
+          existingPeriod.value += Number(calcRes.timeline[i].value);
+        } else {
+          // Add new period to total sum
+          totalSum.push({
+            period: String(calcRes.timeline[i].date),
+            value: Number(calcRes.timeline[i].value),
+          });
+        }
       });
-
-      console.log(results);
     }
 
-    setChartState(chartData);
+    // Update chart data with total sum
+    setChartState(
+      totalSum.map((item) => ({
+        item1: item.value,
+        period: item.period,
+      }))
+    );
   };
 
   return (

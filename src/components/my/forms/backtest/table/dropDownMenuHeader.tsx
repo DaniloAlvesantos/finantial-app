@@ -38,7 +38,7 @@ export const DropDownMenu = memo(
 
       keys.forEach((_, i) => {
         const value = i < remainder ? baseValue + 1 : baseValue;
-        setValue(`tickets.${i}.wallet${walletNum}`, value);
+        setValue(`tickets.${i}.wallet${walletNum}`, String(value));
       });
     }, []);
 
