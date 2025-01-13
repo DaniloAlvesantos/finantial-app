@@ -11,15 +11,15 @@ import { TicketFormValues } from "@/components/my/forms/backtest/type";
 import { Spin } from "@/components/my/loading/spin/spin";
 import { Footer } from "@/components/my/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
+import { DonutChart } from "@/components/my/charts/donutChart/donutChart";
 
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
-  const [tickets, setTickets] = useState<string[]>();
-  const stocks = useMultStocks(["TSCO.LON"]);
-  
-  const chartData: any[] = [];
+  const [tickets, setTickets] = useState<string[]>([]);
+  const stocks = useMultStocks(tickets);
 
   const submit: SubmitHandler<TicketFormValues> = (values) => {
+    const chartData: any[] = [];
     const ticketsVal: string[] = [];
     values.tickets.map((ticket) => {
       ticketsVal.push(ticket.ticket);
@@ -44,10 +44,8 @@ export default function Home() {
       return console.log(validations.error);
     }
 
-    // Initialize a total sum for the wallet's results
-    const totalSum: { period: string; value: number }[] = [];
+    const total: { values: number[]; dates: Date[] }[] = [];
 
-    // LOOP
     for (let idx = 0; idx < values.tickets.length; idx++) {
       const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
       if (!monthlyData) {
@@ -76,30 +74,34 @@ export default function Home() {
 
       console.log(calcRes);
 
-      periods.forEach((_, i) => {
-        const existingPeriod = totalSum.find(
-          (item) => item.period === String(calcRes.timeline[i].date)
-        );
-        if (existingPeriod) {
-          // Add to existing period value
-          existingPeriod.value += Number(calcRes.timeline[i].value);
-        } else {
-          // Add new period to total sum
-          totalSum.push({
-            period: String(calcRes.timeline[i].date),
-            value: Number(calcRes.timeline[i].value),
-          });
-        }
+      total.push({
+        values: calcRes.timeline.map((item) => Number(item.value)),
+        dates: periods,
       });
     }
 
-    // Update chart data with total sum
-    setChartState(
-      totalSum.map((item) => ({
-        item1: item.value,
-        period: item.period,
-      }))
-    );
+    const totalSum: number[] = [0];
+
+    Array.from({ length: total.length }, (_, idx) => {
+      for (let i = 0; i < total[idx].values.length; i++) {
+        if (totalSum[i] !== undefined) {
+          totalSum[i] += Number(total[idx].values[i]);
+        } else {
+          totalSum[i] = Number(total[idx].values[i]);
+        }
+      }
+    });
+
+
+    totalSum.forEach((val, i) => {
+      chartData.push({
+        item1: val,
+        period: String(total[0].dates[i])
+      });
+    })
+    console.log(chartData)
+
+    setChartState(chartData);
   };
 
   return (
@@ -110,10 +112,11 @@ export default function Home() {
         <div className="w-full">
           {chartState ? (
             <div>
+              <DonutChart />
               <TimelineChart
                 chartData={chartState}
-                title="Linha do tempo"
-                descrip="Veja os valores de periodo completo"
+                title="Valorização da carteira"
+                descrip="Veja a valorização da carteira"
               />
             </div>
           ) : (

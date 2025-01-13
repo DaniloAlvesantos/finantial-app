@@ -54,7 +54,7 @@ export const months: Months[] = [
   },
 ];
 
-const startYear = 2000;
+const startYear = 2010;
 const currentYear = new Date().getFullYear();
 export const years = Array.from(
   { length: currentYear - startYear + 1 },

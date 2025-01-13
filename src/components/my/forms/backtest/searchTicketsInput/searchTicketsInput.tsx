@@ -32,9 +32,14 @@ export const SearchTicketInput = ({
 };
 
 export const DataListTicket = ({ value }: { value: string }) => {
-  const { data, isLoading } = useTickets(value);
+  const { data, isLoading, error, isError } = useTickets(value);
 
-  if (!data) {
+  if (isError) {
+    console.log(error)
+    return;
+  }
+
+  if(!data) {
     return;
   }
 
