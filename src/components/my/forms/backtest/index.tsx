@@ -13,6 +13,8 @@ import { TableFormFooter } from "./table/tableFormFooter";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui";
 import { useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Lightbulb } from "lucide-react"
 
 interface BacktestFormProps {
   onSubmit: SubmitHandler<TicketFormValues>;
@@ -65,7 +67,14 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
             {form.formState.errors.tickets.root?.message}
           </p>
         ) : null}
-        <Button type="submit">Enviar</Button>
+        <Alert className="md:w-[40rem] my-4">
+          <Lightbulb className="size-6 " color="#f5d492" />
+          <AlertTitle className="font-poppins">Dica</AlertTitle>
+          <AlertDescription className="font-montserrat">Ações ou índices que terminam com <strong className="text-app-beige">.SA</strong> (South America), referem America do Sul.</AlertDescription>
+        </Alert>
+        <div className="w-full flex items-center justify-center">
+        <Button type="submit" className="bg-app-green hover:bg-[#28A041] font-poppins px-8 py-5">Simular</Button>
+        </div>
       </form>
     </Form.Form>
   );

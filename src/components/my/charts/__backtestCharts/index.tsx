@@ -1,26 +1,22 @@
 import { TimelineChart } from "../timeline/timeline";
 import { useEffect } from "react";
 import { table } from "@/components/ui";
-
-type chartDatas = {
-  timeline: any[];
-  drawdows: any[];
-  monthlyReturns:any[];
-  maxDrawdown: number;
-  cagr: number;
-  annualVotality: number;
-}
+import { DonutChart } from "../donutChart/donutChart";
 
 interface BacktestChartsProps {
-  wallets: chartDatas[];
+  chartsDatas: {
+    timeline:any[];
+    annualReturns: any[];
+    drawdowns: any[];
+  };
 }
 
-export const BacktestCharts = ({
-  wallets,
-}: BacktestChartsProps) => {
-  useEffect(() => {}, [wallets]);
+export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
+  useEffect(() => {
+    console.log(chartsDatas)
+  }, [chartsDatas]);
 
-  if (!wallets) {
+  if (!chartsDatas) {
     return;
   }
 
@@ -33,10 +29,11 @@ export const BacktestCharts = ({
           </table.TableRow>
         </table.TableHeader>
       </table.Table>
+      <DonutChart />
       <TimelineChart
-        chartData={wallets[0].timeline}
-        title="Linha do tempo"
-        descrip="Veja os valores de periodo completo"
+        chartData={chartsDatas.timeline}
+        title="Valorização da carteira"
+        descrip="Veja a valorização da carteira"
       />
     </div>
   );

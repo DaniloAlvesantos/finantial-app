@@ -29,10 +29,9 @@ interface DonutChartProps {
 
 export function DonutChart() {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col shadow-none w-3/12">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Carteira-1</CardTitle>
-        <CardDescription>Porcentagens - Ações</CardDescription>
+        <CardTitle>Carteira - 1</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer

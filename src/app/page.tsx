@@ -12,6 +12,7 @@ import { Spin } from "@/components/my/loading/spin/spin";
 import { Footer } from "@/components/my/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
 import { DonutChart } from "@/components/my/charts/donutChart/donutChart";
+import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
 
 export default function Home() {
   const [chartState, setChartState] = useState<any[]>([]);
@@ -19,7 +20,6 @@ export default function Home() {
   const stocks = useMultStocks(tickets);
 
   const submit: SubmitHandler<TicketFormValues> = (values) => {
-    const chartData: any[] = [];
     const ticketsVal: string[] = [];
     values.tickets.map((ticket) => {
       ticketsVal.push(ticket.ticket);
@@ -81,6 +81,8 @@ export default function Home() {
     }
 
     const totalSum: number[] = [0];
+    const chartData: any[] = [];
+
 
     Array.from({ length: total.length }, (_, idx) => {
       for (let i = 0; i < total[idx].values.length; i++) {
@@ -92,14 +94,17 @@ export default function Home() {
       }
     });
 
+    console.log("total: ", total)
 
     totalSum.forEach((val, i) => {
       chartData.push({
         item1: val,
-        period: String(total[0].dates[i])
+        period: String(total[0].dates[i]),
       });
-    })
-    console.log(chartData)
+    });
+
+    console.log("totalSum: ", totalSum)
+    console.log("chartData: ",chartData);
 
     setChartState(chartData);
   };
@@ -110,8 +115,10 @@ export default function Home() {
       <main className="flex flex-col item-center gap-8 p-4 sm:p-8">
         <BacktestForm onSubmit={submit} />
         <div className="w-full">
-          {chartState ? (
-            <div>
+          {!chartState.length ? (
+            <Spin />
+          ) : (
+            <div className="flex flex-col gap-4">
               <DonutChart />
               <TimelineChart
                 chartData={chartState}
@@ -119,8 +126,8 @@ export default function Home() {
                 descrip="Veja a valorização da carteira"
               />
             </div>
-          ) : (
-            <Spin />
+
+            // <BacktestCharts chartsDatas={chartState} />
           )}
         </div>
       </main>
