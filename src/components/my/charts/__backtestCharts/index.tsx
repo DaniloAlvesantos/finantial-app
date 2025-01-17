@@ -1,14 +1,12 @@
 import { TimelineChart } from "../timeline/timeline";
 import { useEffect } from "react";
-import { table } from "@/components/ui";
 import { DonutChart } from "../donutChart/donutChart";
+import { ChartDatas } from "@/app/page";
+import { Drawdowns } from "../drawdowns/drawdowns";
+import { AnnualReturns } from "../annualReturns/annualReturns";
 
 interface BacktestChartsProps {
-  chartsDatas: {
-    timeline:any[];
-    annualReturns: any[];
-    drawdowns: any[];
-  };
+  chartsDatas: ChartDatas;
 }
 
 export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
@@ -21,20 +19,17 @@ export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
   }
 
   return (
-    <div>
-      <table.Table>
-        <table.TableHeader>
-          <table.TableRow>
-            <table.TableHead></table.TableHead>
-          </table.TableRow>
-        </table.TableHeader>
-      </table.Table>
-      <DonutChart />
+    <div className="flex flex-col gap-4">
+      <div id="donutsCharts" className="grid grid-cols-3">
+        <DonutChart chartData={chartsDatas.wallet1.tickersPercentage} title="Carteira - 1" />
+      </div>
       <TimelineChart
-        chartData={chartsDatas.timeline}
+        chartData={chartsDatas.wallet1.timeline}
         title="Valorização da carteira"
         descrip="Veja a valorização da carteira"
       />
+      <Drawdowns chartData={chartsDatas.wallet1.drawdowns} title="Drawdowns" descrip="Veja os periodos negativos" />
+      <AnnualReturns chartData={chartsDatas.wallet1.monthlyReturns} title="Retorno Anual" descrip="Veja os retornos anuais" />
     </div>
   );
 };

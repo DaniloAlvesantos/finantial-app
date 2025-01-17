@@ -8,7 +8,7 @@ export const TableFormHeader = () => {
     <table.TableHeader>
       <table.TableRow>
         <table.TableHead className="w-16 sm:w-[6.25rem]">
-          Ticket
+          Ações
         </table.TableHead>
         <table.TableHead className="w-16 relative text-ellipsis">
           Carteira-1

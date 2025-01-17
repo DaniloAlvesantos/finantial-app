@@ -6,7 +6,8 @@
     - [ ] Validate the percent ticket cannot be empty
 - [X] Mult queries stocks
 - [X] Fix the bottom chart tracker
-- [ ] Redo the submit function.
+- [X] Redo the submit function.
+- [ ] Form the right type of chartsDatas
 
 ## ChartData Setting
 

@@ -41,13 +41,13 @@ export const backtestSchema = z.object({
         (ticket) => ticket.ticket.length && ticket.wallet1
       );
 
-      if (hasEmptyTicketsWithPercentage) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.not_finite,
-          message: "Nenhuma alocação definida",
-          fatal: true,
-        });
-      }
+      // if (hasEmptyTicketsWithPercentage) {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.not_finite,
+      //     message: "Nenhuma alocação definida",
+      //     fatal: true,
+      //   });
+      // }
       if (!atLeastOneFilled) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

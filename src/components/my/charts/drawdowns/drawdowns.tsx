@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   Area,
-  ComposedChart,
+  AreaChart,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -24,16 +24,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { currencyFormatter } from "@/lib/currencyFormatter";
-import { chartConfigDefault } from "../chartTypes"
+import { chartConfigDefault } from "../chartTypes";
 
-export interface timelineChartProps {
+export interface DrawdownsProps {
   chartData: any[];
   title: string;
   descrip: string;
 }
 
-export const TimelineChart = (props: timelineChartProps) => {
+export const Drawdowns = (props: DrawdownsProps) => {
   const { chartData, descrip, title } = props;
 
   if (!chartData || !chartData.length) {
@@ -45,11 +44,11 @@ export const TimelineChart = (props: timelineChartProps) => {
   }, 0);
 
   const xAxiosInterval = Math.round(chartData.length / 12);
-
+  console.log(chartData)
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
-        <div className="grid flex-1 gap-1 text-center sm:text-left">
+        <div className="flex-1 gap-1 text-center sm:text-left">
           <CardTitle>{title}</CardTitle>
           <CardDescription>{descrip}</CardDescription>
         </div>
@@ -57,13 +56,13 @@ export const TimelineChart = (props: timelineChartProps) => {
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         <ChartContainer
           config={chartConfigDefault}
-          className="aspect-auto h-[15.625rem] w-full"
+          className="h-[30rem] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
+            <AreaChart
               data={chartData}
               accessibilityLayer
-              margin={{ left: 12, right: 12, top:12 }}
+              margin={{ left: 12, right: 12, top: 12 }}
             >
               <CartesianGrid vertical={false} />
               <XAxis
@@ -91,7 +90,7 @@ export const TimelineChart = (props: timelineChartProps) => {
               <YAxis
                 axisLine={{ stroke: "#E5E7EB" }}
                 tickMargin={8}
-                tickFormatter={(value) => currencyFormatter.format(value)}
+                tickFormatter={(value) => Number(value).toFixed(2) + "%"}
                 tick={{ fill: "#6B7280", fontSize: 12 }}
                 className="font-poppins font-normal"
               />
@@ -116,10 +115,11 @@ export const TimelineChart = (props: timelineChartProps) => {
                             } as React.CSSProperties
                           }
                         />
-                        {chartConfigDefault[name as keyof typeof chartConfigDefault]?.label ||
-                          name}
+                        {chartConfigDefault[
+                          name as keyof typeof chartConfigDefault
+                        ]?.label || name}
                         <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                          {currencyFormatter.format(Number(value))}
+                          {Number(value).toFixed(2) + "%"}
                         </div>
                       </>
                     )}
@@ -157,18 +157,19 @@ export const TimelineChart = (props: timelineChartProps) => {
                 return (
                   <Area
                     dataKey={`item${i}`}
-                    type="natural"
+                    type="linear"
                     fill={`url(#fillItem${i})`}
                     fillOpacity={0.4}
                     stroke={`var(--color-item${i})`}
                     stackId="a"
+                    isAnimationActive={false}
                     key={idx}
                   />
                 );
               })}
 
-              <ChartLegend content={<ChartLegendContent />}  />
-            </ComposedChart>
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

@@ -4,18 +4,39 @@ import { PeriodKeys } from "@/types/alphaVantageResponse";
 import { BacktestForm } from "@/components/my/forms";
 import { Header } from "@/components/my/header";
 import { Calcs } from "@/utils/calc";
-import { TimelineChart } from "@/components/my/charts/timeline/timeline";
 import { SubmitHandler } from "react-hook-form";
 import { useState } from "react";
 import { TicketFormValues } from "@/components/my/forms/backtest/type";
-import { Spin } from "@/components/my/loading/spin/spin";
 import { Footer } from "@/components/my/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
-import { DonutChart } from "@/components/my/charts/donutChart/donutChart";
 import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
 
+type DefaultValues = {
+  item1?: number;
+  item2?: number;
+  item3?: number;
+  period: string;
+};
+
+type Wallet = {
+  timeline: DefaultValues[];
+  drawdowns: DefaultValues[];
+  monthlyReturns: DefaultValues[];
+  tickersPercentage: {
+    ticker: string;
+    percentage: number;
+    fill: string;
+  }[];
+};
+
+export type ChartDatas = {
+  wallet1: Wallet;
+  wallet2?: Wallet;
+  wallet3?: Wallet;
+};
+
 export default function Home() {
-  const [chartState, setChartState] = useState<any[]>([]);
+  const [chartState, setChartState] = useState<ChartDatas | null>();
   const [tickets, setTickets] = useState<string[]>([]);
   const stocks = useMultStocks(tickets);
 
@@ -44,7 +65,15 @@ export default function Home() {
       return console.log(validations.error);
     }
 
-    const total: { values: number[]; dates: Date[] }[] = [];
+    const totals: ReturnType<Calcs["generalValues"]>[] = [];
+    const chartsDatas: ChartDatas = {
+      wallet1: {
+        timeline: [],
+        drawdowns: [],
+        monthlyReturns: [],
+        tickersPercentage: [],
+      },
+    };
 
     for (let idx = 0; idx < values.tickets.length; idx++) {
       const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
@@ -72,63 +101,60 @@ export default function Home() {
           (Number(values.tickets[idx].wallet1) / 100),
       });
 
-      console.log(calcRes);
+      totals.push(calcRes);
 
-      total.push({
-        values: calcRes.timeline.map((item) => Number(item.value)),
-        dates: periods,
+      chartsDatas.wallet1.tickersPercentage.push({
+        ticker: ticketsVal[idx],
+        percentage: Number(values.tickets[idx].wallet1),
+        fill: `hsl(var(--chart-${idx + 1}))`,
       });
     }
 
-    const totalSum: number[] = [0];
-    const chartData: any[] = [];
+    const totalTimeline: number[] = [0];
+    const totalDrawdowns: number[] = [0];
+    const totalMonthlyRetuns: number[] = [0];
+    const totalAnnual: number[] = [0];
 
-
-    Array.from({ length: total.length }, (_, idx) => {
-      for (let i = 0; i < total[idx].values.length; i++) {
-        if (totalSum[i] !== undefined) {
-          totalSum[i] += Number(total[idx].values[i]);
+    Array.from({ length: totals.length }, (_, idx) => {
+      for (let i = 0; i < totals[idx].timeline.length; i++) {
+        if (totalTimeline[i] !== undefined) {
+          totalTimeline[i] += Number(totals[idx].timeline[i].value);
+          totalDrawdowns[i] += totals[idx].drawdowns[i].value * -1;
+          totalMonthlyRetuns[i] += Number(totals[idx].monthlyRetuns[i].value);
         } else {
-          totalSum[i] = Number(total[idx].values[i]);
+          totalTimeline[i] = Number(totals[idx].timeline[i].value);
+          totalDrawdowns[i] = totals[idx].drawdowns[i].value * -1;
+          totalMonthlyRetuns[i] = Number(totals[idx].monthlyRetuns[i].value);
         }
       }
     });
 
-    console.log("total: ", total)
+    Array.from({ length: totalTimeline.length }, (_, i) => {
+      chartsDatas.wallet1.timeline.push({
+        item1: totalTimeline[i],
+        period: String(totals[0].periods[i]),
+      });
 
-    totalSum.forEach((val, i) => {
-      chartData.push({
-        item1: val,
-        period: String(total[0].dates[i]),
+      chartsDatas.wallet1.drawdowns.push({
+        item1: totalDrawdowns[i],
+        period: String(totals[0].periods[i]),
+      });
+
+      chartsDatas.wallet1.monthlyReturns.push({
+        item1: totalMonthlyRetuns[i],
+        period: String(totals[0].periods[i]),
       });
     });
 
-    console.log("totalSum: ", totalSum)
-    console.log("chartData: ",chartData);
-
-    setChartState(chartData);
+    setChartState(chartsDatas);
   };
-
   return (
     <>
       <Header />
       <main className="flex flex-col item-center gap-8 p-4 sm:p-8">
         <BacktestForm onSubmit={submit} />
         <div className="w-full">
-          {!chartState.length ? (
-            <Spin />
-          ) : (
-            <div className="flex flex-col gap-4">
-              <DonutChart />
-              <TimelineChart
-                chartData={chartState}
-                title="Valorização da carteira"
-                descrip="Veja a valorização da carteira"
-              />
-            </div>
-
-            // <BacktestCharts chartsDatas={chartState} />
-          )}
+          {!chartState ? null : <BacktestCharts chartsDatas={chartState} />}
         </div>
       </main>
       <Footer />

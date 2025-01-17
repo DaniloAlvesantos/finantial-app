@@ -47,6 +47,8 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
     );
   };
 
+  useEffect(() => console.log(form.formState.errors))
+
   return (
     <Form.Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>

@@ -1,0 +1,122 @@
+"use client";
+
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+import { chartConfigDefault } from "../chartTypes";
+
+interface AnnualReturnsProps {
+  chartData: any[];
+  title: string;
+  descrip: string;
+}
+
+export function AnnualReturns(props: AnnualReturnsProps) {
+  const { chartData, descrip, title } = props;
+
+  if (!chartData || !chartData.length) {
+    return;
+  }
+
+  const howManyItems = Object.keys(chartData[0]).reduce((acc, key) => {
+    return key.includes("item") ? acc + 1 : acc;
+  }, 0);
+
+  const xAxiosInterval = Math.round(chartData.length / 12);
+
+  const groupedByYear = chartData.reduce((acc, entry) => {
+    const year = new Date(entry.period).getFullYear();
+    const monthlyReturn = entry.item1 / 100; // Convert to decimal
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(1 + monthlyReturn);
+    return acc;
+  }, {});
+
+  // Calculate annual returns
+  const annualReturns = Object.keys(groupedByYear).map((year) => {
+    const product = groupedByYear[year].reduce((acc, value) => acc * value, 1);
+    const annualReturn = (product - 1) * 100; // Convert back to percentage
+    return { period: Number(year), item1: annualReturn.toFixed(2) };
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{descrip}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfigDefault} className="aspect-auto w-full h-[30rem]">
+          <BarChart accessibilityLayer data={annualReturns}>
+            <CartesianGrid vertical={false} />
+
+            <YAxis
+              axisLine={{ stroke: "#E5E7EB" }}
+              tickMargin={8}
+              tickFormatter={(value) => Number(value).toFixed(2) + "%"}
+              tick={{ fill: "#6B7280", fontSize: 12 }}
+              className="font-poppins font-normal"
+            />
+
+            <ChartTooltip
+              cursor={false}
+              labelFormatter={(value) =>
+                `${new Date(value).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "numeric",
+                })}`
+              }
+              content={
+                <ChartTooltipContent
+                  cursor={false}
+                  formatter={(value, name, item, index) => (
+                    <>
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                        style={
+                          {
+                            "--color-bg": `var(--color-${name})`,
+                          } as React.CSSProperties
+                        }
+                      />
+                      {chartConfigDefault[
+                        name as keyof typeof chartConfigDefault
+                      ]?.label || name}
+                      <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                        {Number(value).toFixed(2) + "%"}
+                      </div>
+                    </>
+                  )}
+                />
+              }
+            />
+            {Array.from({ length: howManyItems }).map((_, idx) => {
+              const i = idx + 1;
+              return (
+                <Bar
+                  dataKey={`item${i}`}
+                  fill={`hsl(var(--chart-${i}))`}
+                  radius={4}
+                  key={idx}
+                  isAnimationActive={false}
+                />
+              );
+            })}
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}

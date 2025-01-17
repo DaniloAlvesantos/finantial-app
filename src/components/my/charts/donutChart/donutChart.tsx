@@ -1,7 +1,7 @@
 "use client";
 
 import { Pie, PieChart } from "recharts";
-import { chartConfigDefault } from "../chartTypes"
+import { chartConfigDefault } from "../chartTypes";
 
 import {
   Card,
@@ -15,23 +15,20 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-const chartData = [
-  { ticker: "IBM", percentage: 50, fill:"hsl(var(--chart-1))" },
-  { ticker: "TSCO.LON", percentage: 50, fill:"hsl(var(--chart-2))" },
-];
-
 interface DonutChartProps {
-    chartData: {
-        ticker:string;
-        percentage: number;
-    }
+  chartData: {
+    ticker: string;
+    percentage: number;
+    fill:string;
+  }[];
+  title:string;
 }
 
-export function DonutChart() {
+export function DonutChart({ chartData, title }: DonutChartProps) {
   return (
-    <Card className="flex flex-col shadow-none w-3/12">
+    <Card className="flex flex-col shadow-none w-[20rem] border-none">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Carteira - 1</CardTitle>
+        <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer

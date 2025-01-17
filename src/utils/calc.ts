@@ -41,8 +41,8 @@ export class Calcs {
     }
 
     const timeline = [{ value: initialInvestiment, date: periods[0] }];
-    const drawdowns = [];
-    const percentReturns = [];
+    const drawdowns = [{ value: 0, date: periods[0] }];
+    const percentReturns = [{ value: 0, date: periods[0] }];
 
     let investmentValue = initialInvestiment;
     let maxValue = initialInvestiment;
@@ -107,7 +107,7 @@ export class Calcs {
       })),
       annualVolatility: Number(annualVolatility.toFixed(2)),
       cagr: Number(cagr.toFixed(2)),
-      annualReturns: percentReturns.map((r) => ({
+      monthlyRetuns: percentReturns.map((r) => ({
         ...r,
         value: Number(r.value.toFixed(2)),
       })),
