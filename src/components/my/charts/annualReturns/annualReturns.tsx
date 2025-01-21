@@ -34,20 +34,22 @@ export function AnnualReturns(props: AnnualReturnsProps) {
     return key.includes("item") ? acc + 1 : acc;
   }, 0);
 
-  const xAxiosInterval = Math.round(chartData.length / 12);
+  // const xAxiosInterval = Math.round(chartData.length / 12);
 
   const groupedByYear = chartData.reduce((acc, entry) => {
     const year = new Date(entry.period).getFullYear();
-    const monthlyReturn = entry.item1 / 100; // Convert to decimal
+    const monthlyReturn = entry.item1 / 100;
     if (!acc[year]) acc[year] = [];
     acc[year].push(1 + monthlyReturn);
     return acc;
   }, {});
 
-  // Calculate annual returns
   const annualReturns = Object.keys(groupedByYear).map((year) => {
-    const product = groupedByYear[year].reduce((acc, value) => acc * value, 1);
-    const annualReturn = (product - 1) * 100; // Convert back to percentage
+    const product = groupedByYear[year].reduce(
+      (acc: number, value: number) => acc * value,
+      1
+    );
+    const annualReturn = (product - 1) * 100;
     return { period: Number(year), item1: annualReturn.toFixed(2) };
   });
 
@@ -58,7 +60,10 @@ export function AnnualReturns(props: AnnualReturnsProps) {
         <CardDescription>{descrip}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfigDefault} className="aspect-auto w-full h-[30rem]">
+        <ChartContainer
+          config={chartConfigDefault}
+          className="aspect-auto w-full h-[30rem]"
+        >
           <BarChart accessibilityLayer data={annualReturns}>
             <CartesianGrid vertical={false} />
 

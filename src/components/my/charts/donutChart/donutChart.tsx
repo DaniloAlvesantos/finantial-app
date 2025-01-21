@@ -45,6 +45,7 @@ export function DonutChart({ chartData, title }: DonutChartProps) {
               dataKey="percentage"
               nameKey="ticker"
               innerRadius={60}
+              isAnimationActive={false}
             />
           </PieChart>
         </ChartContainer>

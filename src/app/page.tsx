@@ -43,7 +43,9 @@ export default function Home() {
   const submit: SubmitHandler<TicketFormValues> = (values) => {
     const ticketsVal: string[] = [];
     values.tickets.map((ticket) => {
-      ticketsVal.push(ticket.ticket);
+      if (ticket.ticket !== "") {
+        ticketsVal.push(ticket.ticket);
+      }
     });
 
     setTickets(ticketsVal);
@@ -75,7 +77,7 @@ export default function Home() {
       },
     };
 
-    for (let idx = 0; idx < values.tickets.length; idx++) {
+    for (let idx = 0; idx < ticketsVal.length; idx++) {
       const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
       if (!monthlyData) {
         console.log("Monthly data is undefined.");
@@ -92,13 +94,17 @@ export default function Home() {
         .filter((item) => new Date(item[0]).getFullYear() >= 2015)
         .map((item) => Number(item[1]["5. adjusted close"]));
 
+      const initialInvestiment =
+        ticketsVal.length > 1
+          ? Number(values.budget.initialInvestiment) *
+            (Number(values.tickets[idx].wallet1) / 100)
+          : Number(values.budget.initialInvestiment);
+
       const calcs = new Calcs();
       const calcRes = calcs.generalValues({
         periodValues,
         periods,
-        initialInvestiment:
-          Number(values.budget.initialInvestiment) *
-          (Number(values.tickets[idx].wallet1) / 100),
+        initialInvestiment: initialInvestiment,
       });
 
       totals.push(calcRes);
@@ -113,21 +119,39 @@ export default function Home() {
     const totalTimeline: number[] = [0];
     const totalDrawdowns: number[] = [0];
     const totalMonthlyRetuns: number[] = [0];
-    const totalAnnual: number[] = [0];
 
     Array.from({ length: totals.length }, (_, idx) => {
       for (let i = 0; i < totals[idx].timeline.length; i++) {
         if (totalTimeline[i] !== undefined) {
           totalTimeline[i] += Number(totals[idx].timeline[i].value);
-          totalDrawdowns[i] += totals[idx].drawdowns[i].value * -1;
+          totalDrawdowns[i] += Number(totals[idx].drawdowns[i].value * -1);
           totalMonthlyRetuns[i] += Number(totals[idx].monthlyRetuns[i].value);
         } else {
           totalTimeline[i] = Number(totals[idx].timeline[i].value);
-          totalDrawdowns[i] = totals[idx].drawdowns[i].value * -1;
+          totalDrawdowns[i] = Number(totals[idx].drawdowns[i].value * -1);
           totalMonthlyRetuns[i] = Number(totals[idx].monthlyRetuns[i].value);
         }
       }
     });
+
+    // const totalAnnual: any[] = [...totalMonthlyRetuns, ...totals[0].periods];
+
+    // const groupedByYear = totalAnnual.reduce((acc, entry) => {
+    //   const year = new Date(entry.period).getFullYear();
+    //   const monthlyReturn = entry.item1 / 100;
+    //   if (!acc[year]) acc[year] = [];
+    //   acc[year].push(1 + monthlyReturn);
+    //   return acc;
+    // }, {});
+  
+    // const annualReturns = Object.keys(groupedByYear).map((year) => {
+    //   const product = groupedByYear[year].reduce(
+    //     (acc: number, value: number) => acc * value,
+    //     1
+    //   );
+    //   const annualReturn = (product - 1) * 100;
+    //   return { period: Number(year), item1: annualReturn.toFixed(2) };
+    // });
 
     Array.from({ length: totalTimeline.length }, (_, i) => {
       chartsDatas.wallet1.timeline.push({
@@ -148,6 +172,7 @@ export default function Home() {
 
     setChartState(chartsDatas);
   };
+
   return (
     <>
       <Header />

@@ -33,21 +33,22 @@ export const backtestSchema = z.object({
     .superRefine((val, ctx) => {
       const hasEmptyTicketsWithPercentage = val.some(
         (fields, idx) =>
-          (!fields.ticket.trim().length && fields.wallet1) ||
-          fields.wallet2 ||
-          fields.wallet3
+          (!fields.ticket.trim().length && fields.wallet1?.length) ||
+          fields.wallet2?.length ||
+          fields.wallet3?.length
       );
       const atLeastOneFilled = val.some(
         (ticket) => ticket.ticket.length && ticket.wallet1
       );
 
-      // if (hasEmptyTicketsWithPercentage) {
-      //   ctx.addIssue({
-      //     code: z.ZodIssueCode.not_finite,
-      //     message: "Nenhuma alocação definida",
-      //     fatal: true,
-      //   });
-      // }
+      if (hasEmptyTicketsWithPercentage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.not_finite,
+          message: "Nenhuma alocação definida",
+          fatal: true,
+        });
+      }
+
       if (!atLeastOneFilled) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -59,7 +60,7 @@ export const backtestSchema = z.object({
     .transform((val) =>
       val.filter(
         (ticket) =>
-          ticket.ticket.trim() !== "" ||
+          ticket.ticket !== "" ||
           ticket.wallet1 !== null ||
           ticket.wallet2 !== null ||
           ticket.wallet3 !== null

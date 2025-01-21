@@ -15,6 +15,9 @@ type generalValuesProps = {
 
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
+    if (previousValue === 0) {
+      return 0; // Avoid division by zero
+    }
     const percentageChange =
       ((currentValue - previousValue) / previousValue) * 100;
     return Number(percentageChange);
@@ -23,7 +26,6 @@ export class Calcs {
   updateValue({ currentValue, prevInvest, previousValue }: updateValueProps) {
     const monthReturn: number = this.trendy({ previousValue, currentValue });
     const newValue = prevInvest * (1 + monthReturn / 100);
-
     return newValue;
   }
 
@@ -32,12 +34,21 @@ export class Calcs {
     periodValues,
     periods,
   }: generalValuesProps) {
+    // Validate inputs
+    if (initialInvestiment <= 0) {
+      throw new Error("Initial investment must be greater than zero.");
+    }
+
     if (periodValues.length !== periods.length) {
-      throw new Error("Os períodos e os valores devem ter o mesmo tamanho.");
+      throw new Error("Periods and periodValues must have the same length.");
     }
 
     if (!periods.every((p) => p instanceof Date && !isNaN(p.getTime()))) {
       throw new Error("Invalid dates in periods array.");
+    }
+
+    if (!periodValues.every((value) => typeof value === "number" && !isNaN(value))) {
+      throw new Error("Invalid values in periodValues array.");
     }
 
     const timeline = [{ value: initialInvestiment, date: periods[0] }];
@@ -63,7 +74,8 @@ export class Calcs {
       percentReturns.push({ value: currentPeriodTrendy, date: periods[i] });
 
       maxValue = Math.max(maxValue, investmentValue);
-      const currentDrawdown = (maxValue - investmentValue) / maxValue;
+      const currentDrawdown =
+        maxValue !== 0 ? (maxValue - investmentValue) / maxValue : 0;
       drawdowns.push({ value: currentDrawdown, date: periods[i] });
       maxDrawdows = Math.max(maxDrawdows, currentDrawdown);
     }

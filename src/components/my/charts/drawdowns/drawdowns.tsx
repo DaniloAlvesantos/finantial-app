@@ -44,7 +44,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
   }, 0);
 
   const xAxiosInterval = Math.round(chartData.length / 12);
-  console.log(chartData)
+  
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
