@@ -9,6 +9,8 @@
 - [X] Redo the submit function.
 - [X] Form the right type of chartsDatas
 - [] Compare the index with the wallets
+- [] Reinvest the divident/provents
+- [] Make works the 3 wallets
 
 ## ChartData Setting
 

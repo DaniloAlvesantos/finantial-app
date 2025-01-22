@@ -134,24 +134,34 @@ export default function Home() {
       }
     });
 
-    // const totalAnnual: any[] = [...totalMonthlyRetuns, ...totals[0].periods];
+    const totalAnnual: any[] = Array.from(
+      { length: totalMonthlyRetuns.length },
+      (_, idx) => {
+        return {
+          value: totalMonthlyRetuns[idx],
+          period: totals[0].periods[idx],
+        };
+      }
+    );
 
-    // const groupedByYear = totalAnnual.reduce((acc, entry) => {
-    //   const year = new Date(entry.period).getFullYear();
-    //   const monthlyReturn = entry.item1 / 100;
-    //   if (!acc[year]) acc[year] = [];
-    //   acc[year].push(1 + monthlyReturn);
-    //   return acc;
-    // }, {});
-  
-    // const annualReturns = Object.keys(groupedByYear).map((year) => {
-    //   const product = groupedByYear[year].reduce(
-    //     (acc: number, value: number) => acc * value,
-    //     1
-    //   );
-    //   const annualReturn = (product - 1) * 100;
-    //   return { period: Number(year), item1: annualReturn.toFixed(2) };
-    // });
+    const groupedByYear = totalAnnual.reduce((acc, entry) => {
+      const year = new Date(entry.period).getFullYear();
+      const monthlyReturn = entry.value / 100;
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(1 + monthlyReturn);
+      return acc;
+    }, {});
+
+    const annualReturns: { period: string; item1: number }[] = Object.keys(
+      groupedByYear
+    ).map((year) => {
+      const product = groupedByYear[year].reduce(
+        (acc: number, value: number) => acc * value,
+        1
+      );
+      const annualReturn = (product - 1) * 100;
+      return { period: String(year), item1: Number(annualReturn.toFixed(2)) };
+    });
 
     Array.from({ length: totalTimeline.length }, (_, i) => {
       chartsDatas.wallet1.timeline.push({
@@ -163,10 +173,12 @@ export default function Home() {
         item1: totalDrawdowns[i],
         period: String(totals[0].periods[i]),
       });
+    });
 
+    annualReturns.forEach((val, i) => {
       chartsDatas.wallet1.monthlyReturns.push({
-        item1: totalMonthlyRetuns[i],
-        period: String(totals[0].periods[i]),
+        period: val.period,
+        item1: val.item1,
       });
     });
 
