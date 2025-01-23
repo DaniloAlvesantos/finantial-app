@@ -67,7 +67,6 @@ export default function Home() {
       return console.log(validations.error);
     }
 
-    const totals: ReturnType<Calcs["generalValues"]>[] = [];
     const chartsDatas: ChartDatas = {
       wallet1: {
         timeline: [],
@@ -75,112 +74,131 @@ export default function Home() {
         monthlyReturns: [],
         tickersPercentage: [],
       },
+      wallet2: {
+        timeline: [],
+        drawdowns: [],
+        monthlyReturns: [],
+        tickersPercentage: [],
+      },
+      wallet3: {
+        timeline: [],
+        drawdowns: [],
+        monthlyReturns: [],
+        tickersPercentage: [],
+      },
     };
 
-    for (let idx = 0; idx < ticketsVal.length; idx++) {
-      const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
-      if (!monthlyData) {
-        console.log("Monthly data is undefined.");
-        return;
+    for (let WIndex = 1; WIndex <= 3; WIndex++) {
+      const totals: ReturnType<Calcs["generalValues"]>[] = [];
+      const currentWallet = `wallet${WIndex}` as keyof ChartDatas;
+      for (let idx = 0; idx < ticketsVal.length; idx++) {
+        const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
+        if (!monthlyData) {
+          console.log("Monthly data is undefined.");
+          return;
+        }
+
+        const periods = Object.keys(monthlyData)
+          .sort()
+          .map((date) => new Date(date))
+          .filter((date) => date.getFullYear() >= 2015);
+
+        const periodValues = Object.entries(monthlyData)
+          .sort()
+          .filter((item) => new Date(item[0]).getFullYear() >= 2015)
+          .map((item) => Number(item[1]["5. adjusted close"]));
+
+        const initialInvestiment =
+          ticketsVal.length > 1
+            ? Number(values.budget.initialInvestiment) *
+              (Number(values.tickets[idx][currentWallet]) / 100)
+            : Number(values.budget.initialInvestiment);
+
+        const calcs = new Calcs();
+        const calcRes = calcs.generalValues({
+          periodValues,
+          periods,
+          initialInvestiment: initialInvestiment,
+        });
+
+        totals.push(calcRes);
+
+        chartsDatas[currentWallet]?.tickersPercentage.push({
+          ticker: ticketsVal[idx],
+          percentage: Number(values.tickets[idx][currentWallet]),
+          fill: `hsl(var(--chart-${idx + 1}))`,
+        });
       }
 
-      const periods = Object.keys(monthlyData)
-        .sort()
-        .map((date) => new Date(date))
-        .filter((date) => date.getFullYear() >= 2015);
+      const totalTimeline: number[] = [0];
+      const totalDrawdowns: number[] = [0];
+      const totalMonthlyRetuns: number[] = [0];
 
-      const periodValues = Object.entries(monthlyData)
-        .sort()
-        .filter((item) => new Date(item[0]).getFullYear() >= 2015)
-        .map((item) => Number(item[1]["5. adjusted close"]));
-
-      const initialInvestiment =
-        ticketsVal.length > 1
-          ? Number(values.budget.initialInvestiment) *
-            (Number(values.tickets[idx].wallet1) / 100)
-          : Number(values.budget.initialInvestiment);
-
-      const calcs = new Calcs();
-      const calcRes = calcs.generalValues({
-        periodValues,
-        periods,
-        initialInvestiment: initialInvestiment,
+      Array.from({ length: totals.length }, (_, idx) => {
+        for (let i = 0; i < totals[idx].timeline.length; i++) {
+          if (totalTimeline[i] !== undefined) {
+            totalTimeline[i] += Number(totals[idx].timeline[i].value);
+            totalDrawdowns[i] += Number(totals[idx].drawdowns[i].value * -1);
+            totalMonthlyRetuns[i] += Number(totals[idx].monthlyRetuns[i].value);
+          } else {
+            totalTimeline[i] = Number(totals[idx].timeline[i].value);
+            totalDrawdowns[i] = Number(totals[idx].drawdowns[i].value * -1);
+            totalMonthlyRetuns[i] = Number(totals[idx].monthlyRetuns[i].value);
+          }
+        }
       });
 
-      totals.push(calcRes);
+      const totalAnnual: any[] = Array.from(
+        { length: totalMonthlyRetuns.length },
+        (_, idx) => {
+          return {
+            value: totalMonthlyRetuns[idx],
+            period: totals[0].periods[idx],
+          };
+        }
+      );
 
-      chartsDatas.wallet1.tickersPercentage.push({
-        ticker: ticketsVal[idx],
-        percentage: Number(values.tickets[idx].wallet1),
-        fill: `hsl(var(--chart-${idx + 1}))`,
+      const groupedByYear = totalAnnual.reduce((acc, entry) => {
+        const year = new Date(entry.period).getFullYear();
+        const monthlyReturn = entry.value / 100;
+        if (!acc[year]) acc[year] = [];
+        acc[year].push(1 + monthlyReturn);
+        return acc;
+      }, {});
+
+      const annualReturns: { period: Date; item1: number }[] = Object.keys(
+        groupedByYear
+      ).map((year) => {
+        const product = groupedByYear[year].reduce(
+          (acc: number, value: number) => acc * value,
+          1
+        );
+        const annualReturn = (product - 1) * 100;
+        return {
+          period: new Date(`01-01-${year}`),
+          item1: Number(annualReturn.toFixed(2)),
+        };
+      });
+
+      Array.from({ length: totalTimeline.length }, (_, i) => {
+        chartsDatas[currentWallet]?.timeline.push({
+          item1: totalTimeline[i],
+          period: String(totals[0].periods[i]),
+        });
+
+        chartsDatas[currentWallet]?.drawdowns.push({
+          item1: totalDrawdowns[i],
+          period: String(totals[0].periods[i]),
+        });
+      });
+
+      annualReturns.forEach((val, i) => {
+        chartsDatas[currentWallet]?.monthlyReturns.push({
+          period: String(val.period),
+          item1: val.item1,
+        });
       });
     }
-
-    const totalTimeline: number[] = [0];
-    const totalDrawdowns: number[] = [0];
-    const totalMonthlyRetuns: number[] = [0];
-
-    Array.from({ length: totals.length }, (_, idx) => {
-      for (let i = 0; i < totals[idx].timeline.length; i++) {
-        if (totalTimeline[i] !== undefined) {
-          totalTimeline[i] += Number(totals[idx].timeline[i].value);
-          totalDrawdowns[i] += Number(totals[idx].drawdowns[i].value * -1);
-          totalMonthlyRetuns[i] += Number(totals[idx].monthlyRetuns[i].value);
-        } else {
-          totalTimeline[i] = Number(totals[idx].timeline[i].value);
-          totalDrawdowns[i] = Number(totals[idx].drawdowns[i].value * -1);
-          totalMonthlyRetuns[i] = Number(totals[idx].monthlyRetuns[i].value);
-        }
-      }
-    });
-
-    const totalAnnual: any[] = Array.from(
-      { length: totalMonthlyRetuns.length },
-      (_, idx) => {
-        return {
-          value: totalMonthlyRetuns[idx],
-          period: totals[0].periods[idx],
-        };
-      }
-    );
-
-    const groupedByYear = totalAnnual.reduce((acc, entry) => {
-      const year = new Date(entry.period).getFullYear();
-      const monthlyReturn = entry.value / 100;
-      if (!acc[year]) acc[year] = [];
-      acc[year].push(1 + monthlyReturn);
-      return acc;
-    }, {});
-
-    const annualReturns: { period: string; item1: number }[] = Object.keys(
-      groupedByYear
-    ).map((year) => {
-      const product = groupedByYear[year].reduce(
-        (acc: number, value: number) => acc * value,
-        1
-      );
-      const annualReturn = (product - 1) * 100;
-      return { period: String(year), item1: Number(annualReturn.toFixed(2)) };
-    });
-
-    Array.from({ length: totalTimeline.length }, (_, i) => {
-      chartsDatas.wallet1.timeline.push({
-        item1: totalTimeline[i],
-        period: String(totals[0].periods[i]),
-      });
-
-      chartsDatas.wallet1.drawdowns.push({
-        item1: totalDrawdowns[i],
-        period: String(totals[0].periods[i]),
-      });
-    });
-
-    annualReturns.forEach((val, i) => {
-      chartsDatas.wallet1.monthlyReturns.push({
-        period: val.period,
-        item1: val.item1,
-      });
-    });
 
     setChartState(chartsDatas);
   };

@@ -13,6 +13,8 @@ export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
     return;
   }
 
+  console.log(chartsDatas)
+
   return (
     <div className="flex flex-col gap-4">
       <div id="donutsCharts" className="grid grid-cols-3">

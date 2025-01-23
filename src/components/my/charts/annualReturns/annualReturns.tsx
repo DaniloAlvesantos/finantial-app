@@ -33,9 +33,8 @@ export function AnnualReturns(props: AnnualReturnsProps) {
   const howManyItems = Object.keys(chartData[0]).reduce((acc, key) => {
     return key.includes("item") ? acc + 1 : acc;
   }, 0);
-
-  // const xAxiosInterval = Math.round(chartData.length / 12);
-  console.log(chartData)
+  const xAxiosInterval = Math.round(chartData.length / 12);
+  console.log(chartData);
   return (
     <Card>
       <CardHeader>
@@ -49,7 +48,27 @@ export function AnnualReturns(props: AnnualReturnsProps) {
         >
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
-
+            <XAxis
+              dataKey="period"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={2}
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date
+                  .toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })
+                  .toUpperCase();
+              }}
+              interval={xAxiosInterval}
+              className="font-poppins font-normal text-xs"
+              textAnchor="end"
+              tick={{ fontSize: 10 }}
+              minTickGap={1000}
+              tickCount={5}
+            />
             <YAxis
               axisLine={{ stroke: "#E5E7EB" }}
               tickMargin={8}
@@ -62,7 +81,6 @@ export function AnnualReturns(props: AnnualReturnsProps) {
               cursor={false}
               labelFormatter={(value) =>
                 `${new Date(value).toLocaleDateString("en-US", {
-                  month: "short",
                   year: "numeric",
                 })}`
               }
