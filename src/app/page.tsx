@@ -12,9 +12,7 @@ import { useMultStocks } from "@/hooks/useMultStocks";
 import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
 
 type DefaultValues = {
-  item1?: number;
-  item2?: number;
-  item3?: number;
+  value: number;
   period: string;
 };
 
@@ -93,6 +91,7 @@ export default function Home() {
       const currentWallet = `wallet${WIndex}` as keyof ChartDatas;
       for (let idx = 0; idx < ticketsVal.length; idx++) {
         const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
+        console.log(monthlyData);
         if (!monthlyData) {
           console.log("Monthly data is undefined.");
           return;
@@ -108,17 +107,15 @@ export default function Home() {
           .filter((item) => new Date(item[0]).getFullYear() >= 2015)
           .map((item) => Number(item[1]["5. adjusted close"]));
 
-        const initialInvestiment =
-          ticketsVal.length > 1
-            ? Number(values.budget.initialInvestiment) *
-              (Number(values.tickets[idx][currentWallet]) / 100)
-            : Number(values.budget.initialInvestiment);
-
         const calcs = new Calcs();
         const calcRes = calcs.generalValues({
           periodValues,
           periods,
-          initialInvestiment: initialInvestiment,
+          initialInvestiment:
+            ticketsVal.length > 1
+              ? Number(values.budget.initialInvestiment) *
+                (Number(values.tickets[idx][currentWallet]) / 100)
+              : Number(values.budget.initialInvestiment),
         });
 
         totals.push(calcRes);
@@ -138,12 +135,20 @@ export default function Home() {
         for (let i = 0; i < totals[idx].timeline.length; i++) {
           if (totalTimeline[i] !== undefined) {
             totalTimeline[i] += Number(totals[idx].timeline[i].value);
-            totalDrawdowns[i] += Number(totals[idx].drawdowns[i].value * -1);
-            totalMonthlyRetuns[i] += Number(totals[idx].monthlyRetuns[i].value);
+            totalDrawdowns[i] +=
+              Number(totals[idx].drawdowns[i].value * -1) *
+              (Number(values.tickets[idx][currentWallet]) / 100);
+            totalMonthlyRetuns[i] +=
+              Number(totals[idx].monthlyRetuns[i].value) *
+              (Number(values.tickets[idx][currentWallet]) / 100);
           } else {
             totalTimeline[i] = Number(totals[idx].timeline[i].value);
-            totalDrawdowns[i] = Number(totals[idx].drawdowns[i].value * -1);
-            totalMonthlyRetuns[i] = Number(totals[idx].monthlyRetuns[i].value);
+            totalDrawdowns[i] =
+              Number(totals[idx].drawdowns[i].value * -1) *
+              (Number(values.tickets[idx][currentWallet]) / 100);
+            totalMonthlyRetuns[i] =
+              Number(totals[idx].monthlyRetuns[i].value) *
+              (Number(values.tickets[idx][currentWallet]) / 100);
           }
         }
       });
@@ -166,7 +171,7 @@ export default function Home() {
         return acc;
       }, {});
 
-      const annualReturns: { period: Date; item1: number }[] = Object.keys(
+      const annualReturns: { period: Date; value: number }[] = Object.keys(
         groupedByYear
       ).map((year) => {
         const product = groupedByYear[year].reduce(
@@ -176,18 +181,18 @@ export default function Home() {
         const annualReturn = (product - 1) * 100;
         return {
           period: new Date(`01-01-${year}`),
-          item1: Number(annualReturn.toFixed(2)),
+          value: Number(annualReturn.toFixed(2)),
         };
       });
 
       Array.from({ length: totalTimeline.length }, (_, i) => {
         chartsDatas[currentWallet]?.timeline.push({
-          item1: totalTimeline[i],
+          value: totalTimeline[i],
           period: String(totals[0].periods[i]),
         });
 
         chartsDatas[currentWallet]?.drawdowns.push({
-          item1: totalDrawdowns[i],
+          value: totalDrawdowns[i],
           period: String(totals[0].periods[i]),
         });
       });
@@ -195,7 +200,7 @@ export default function Home() {
       annualReturns.forEach((val, i) => {
         chartsDatas[currentWallet]?.monthlyReturns.push({
           period: String(val.period),
-          item1: val.item1,
+          value: val.value,
         });
       });
     }

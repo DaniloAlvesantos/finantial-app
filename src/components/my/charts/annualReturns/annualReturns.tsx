@@ -34,7 +34,6 @@ export function AnnualReturns(props: AnnualReturnsProps) {
     return key.includes("item") ? acc + 1 : acc;
   }, 0);
   const xAxiosInterval = Math.round(chartData.length / 12);
-  console.log(chartData);
   return (
     <Card>
       <CardHeader>

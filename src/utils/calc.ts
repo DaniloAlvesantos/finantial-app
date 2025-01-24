@@ -34,9 +34,8 @@ export class Calcs {
     periodValues,
     periods,
   }: generalValuesProps) {
-    // Validate inputs
     if (initialInvestiment <= 0) {
-      throw new Error("Initial investment must be greater than zero.");
+      // throw new Error("Initial investment must be greater than zero.");
     }
 
     if (periodValues.length !== periods.length) {
@@ -47,7 +46,9 @@ export class Calcs {
       throw new Error("Invalid dates in periods array.");
     }
 
-    if (!periodValues.every((value) => typeof value === "number" && !isNaN(value))) {
+    if (
+      !periodValues.every((value) => typeof value === "number" && !isNaN(value))
+    ) {
       throw new Error("Invalid values in periodValues array.");
     }
 
