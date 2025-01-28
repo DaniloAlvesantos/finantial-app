@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -45,7 +47,11 @@ export function AnnualReturns(props: AnnualReturnsProps) {
           config={chartConfigDefault}
           className="aspect-auto w-full h-[30rem]"
         >
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart
+            accessibilityLayer
+            data={chartData}
+            margin={{ left: 12, right: 12, top: 12 }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="period"
@@ -119,6 +125,7 @@ export function AnnualReturns(props: AnnualReturnsProps) {
                 />
               );
             })}
+            <ChartLegend content={<ChartLegendContent />} />
           </BarChart>
         </ChartContainer>
       </CardContent>

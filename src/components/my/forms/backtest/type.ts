@@ -34,20 +34,20 @@ export const backtestSchema = z.object({
       const hasEmptyTicketsWithPercentage = val.some(
         (fields, idx) =>
           (!fields.ticket.trim().length && fields.wallet1?.length) ||
-          fields.wallet2?.length ||
-          fields.wallet3?.length
+          (!fields.ticket.trim().length && fields.wallet2?.length) ||
+          (!fields.ticket.trim().length && fields.wallet3?.length)
       );
       const atLeastOneFilled = val.some(
         (ticket) => ticket.ticket.length && ticket.wallet1
       );
 
-      // if (hasEmptyTicketsWithPercentage) {
-      //   ctx.addIssue({
-      //     code: z.ZodIssueCode.not_finite,
-      //     message: "Nenhuma alocação definida",
-      //     fatal: true,
-      //   });
-      // }
+      if (hasEmptyTicketsWithPercentage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.not_finite,
+          message: "Nenhuma alocação definida",
+          fatal: true,
+        });
+      }
 
       if (!atLeastOneFilled) {
         ctx.addIssue({

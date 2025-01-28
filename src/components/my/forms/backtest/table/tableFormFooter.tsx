@@ -3,10 +3,12 @@ import { useBackTestForm } from "@/hooks/useFormProvider";
 
 interface TableFormFooterProps {
   handleTicketsQuant: () => void;
+  disabledButton: boolean;
 }
 
 export const TableFormFooter = ({
   handleTicketsQuant,
+  disabledButton
 }: TableFormFooterProps) => {
   const { watch } = useBackTestForm();
 
@@ -22,7 +24,7 @@ export const TableFormFooter = ({
     <table.TableFooter>
       <table.TableRow>
         <table.TableCell>
-          <Button type="button" onClick={handleTicketsQuant} variant="link">
+          <Button disabled={disabledButton} type="button" onClick={handleTicketsQuant} variant="link">
             Adicionar 5+
           </Button>
         </table.TableCell>

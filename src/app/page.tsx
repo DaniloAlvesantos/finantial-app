@@ -87,11 +87,21 @@ export default function Home() {
     };
 
     for (let WIndex = 1; WIndex <= 3; WIndex++) {
-      const totals: ReturnType<Calcs["generalValues"]>[] = [];
       const currentWallet = `wallet${WIndex}` as keyof ChartDatas;
+
+      const hasAllocations = values.tickets.some(
+        (ticket) => ticket[currentWallet] && Number(ticket[currentWallet]) > 0
+      );
+
+      if (!hasAllocations) {
+        console.log("0% na carteira")
+        continue;
+      }
+
+      const totals: ReturnType<Calcs["generalValues"]>[] = [];
+
       for (let idx = 0; idx < ticketsVal.length; idx++) {
         const monthlyData = stocks.data[idx]?.[PeriodKeys.monthly];
-        console.log(monthlyData);
         if (!monthlyData) {
           console.log("Monthly data is undefined.");
           return;
@@ -153,6 +163,18 @@ export default function Home() {
         }
       });
 
+      Array.from({ length: totalTimeline.length }, (_, i) => {
+        chartsDatas[currentWallet]?.timeline.push({
+          value: totalTimeline[i],
+          period: String(totals[0].periods[i]),
+        });
+
+        chartsDatas[currentWallet]?.drawdowns.push({
+          value: totalDrawdowns[i],
+          period: String(totals[0].periods[i]),
+        });
+      });
+
       const totalAnnual: any[] = Array.from(
         { length: totalMonthlyRetuns.length },
         (_, idx) => {
@@ -185,19 +207,7 @@ export default function Home() {
         };
       });
 
-      Array.from({ length: totalTimeline.length }, (_, i) => {
-        chartsDatas[currentWallet]?.timeline.push({
-          value: totalTimeline[i],
-          period: String(totals[0].periods[i]),
-        });
-
-        chartsDatas[currentWallet]?.drawdowns.push({
-          value: totalDrawdowns[i],
-          period: String(totals[0].periods[i]),
-        });
-      });
-
-      annualReturns.forEach((val, i) => {
+      annualReturns.forEach((val) => {
         chartsDatas[currentWallet]?.monthlyReturns.push({
           period: String(val.period),
           value: val.value,

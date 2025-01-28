@@ -62,7 +62,7 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
         <table.Table>
           <TableFormHeader />
           <TableFormBody fields={fields} />
-          <TableFormFooter handleTicketsQuant={handleTicketsQuant} />
+          <TableFormFooter disabledButton={fields.length === 50} handleTicketsQuant={handleTicketsQuant} />
         </table.Table>
         {form.formState.errors.tickets ? (
           <p className="text-red-600 border border-rose-500 bg-rose-300 px-2 py-1 rounded w-[20rem] md:max-w-[50%]">

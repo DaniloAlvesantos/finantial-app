@@ -3,7 +3,6 @@ import { DonutChart } from "../donutChart/donutChart";
 import { ChartDatas } from "@/app/page";
 import { Drawdowns } from "../drawdowns/drawdowns";
 import { AnnualReturns } from "../annualReturns/annualReturns";
-import { useEffect } from "react";
 
 interface BacktestChartsProps {
   chartsDatas: ChartDatas;
@@ -14,11 +13,18 @@ export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
     return;
   }
 
-  console.log(chartsDatas);
-
+  const donutData: any[] = [];
   const timelineData: any[] = [];
   const drawdownsData: any[] = [];
   const annualReturnsData: any[] = [];
+
+  console.log(chartsDatas);
+
+  for (let i = 1; i <= 3; i++) {
+    donutData.push({
+      value: chartsDatas[`wallet${i}` as keyof ChartDatas]?.tickersPercentage,
+    });
+  }
 
   for (let idx = 0; idx < chartsDatas.wallet1.timeline.length; idx++) {
     for (let WIndex = 1; WIndex <= 3; WIndex++) {
@@ -76,12 +82,7 @@ export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div id="donutsCharts" className="grid grid-cols-3">
-        <DonutChart
-          chartData={chartsDatas.wallet1.tickersPercentage}
-          title="Carteira - 1"
-        />
-      </div>
+      <DonutChart chartData={donutData} />
       <TimelineChart
         chartData={timelineData}
         title="Valorização da carteira"
