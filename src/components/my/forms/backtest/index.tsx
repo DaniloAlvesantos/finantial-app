@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui";
 import { useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lightbulb } from "lucide-react"
+import { Lightbulb } from "lucide-react";
 
 interface BacktestFormProps {
   onSubmit: SubmitHandler<TicketFormValues>;
@@ -47,7 +47,7 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
     );
   };
 
-  useEffect(() => console.log(form.formState.errors))
+  // useEffect(() => console.log(form.formState.errors))
 
   return (
     <Form.Form {...form}>
@@ -62,7 +62,10 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
         <table.Table>
           <TableFormHeader />
           <TableFormBody fields={fields} />
-          <TableFormFooter disabledButton={fields.length === 50} handleTicketsQuant={handleTicketsQuant} />
+          <TableFormFooter
+            disabledButton={fields.length === 50}
+            handleTicketsQuant={handleTicketsQuant}
+          />
         </table.Table>
         {form.formState.errors.tickets ? (
           <p className="text-red-600 border border-rose-500 bg-rose-300 px-2 py-1 rounded w-[20rem] md:max-w-[50%]">
@@ -72,10 +75,19 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
         <Alert className="md:w-[40rem] my-4">
           <Lightbulb className="size-6 " color="#f5d492" />
           <AlertTitle className="font-poppins">Dica</AlertTitle>
-          <AlertDescription className="font-montserrat">Ações ou índices que terminam com <strong className="text-app-beige">.SA</strong> (South America), referem America do Sul.</AlertDescription>
+          <AlertDescription className="font-montserrat">
+            Ações ou índices que terminam com{" "}
+            <strong className="text-app-beige">.SA</strong> (South America),
+            referem America do Sul.
+          </AlertDescription>
         </Alert>
         <div className="w-full flex items-center justify-center">
-        <Button type="submit" className="bg-app-green hover:bg-[#28A041] font-poppins px-8 py-5">Simular</Button>
+          <Button
+            type="submit"
+            className="bg-app-green hover:bg-[#28A041] font-poppins px-8 py-5"
+          >
+            Simular
+          </Button>
         </div>
       </form>
     </Form.Form>

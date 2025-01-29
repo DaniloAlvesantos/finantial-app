@@ -4,7 +4,9 @@ import axios, { AxiosPromise } from "axios";
 
 const apikey = process.env.api_key;
 
-const fetchData = async (ticket: string): AxiosPromise<AlphaVantageResponse> => {
+const fetchData = async (
+  ticket: string
+): AxiosPromise<AlphaVantageResponse> => {
   const response = await axios.get<AlphaVantageResponse>(
     `https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticket}&apikey=demo`
   );
@@ -17,11 +19,14 @@ export function useMultStocks(tickets: string[]) {
     queries: tickets.map((ticket) => ({
       queryKey: ["stock-data", ticket],
       queryFn: () => fetchData(ticket),
-      enabled: !!ticket,
+      enabled: !!ticket.length,
+      retry: 3,
+      retryDelay: 1000,
     })),
   });
 
   const results = query.map((values) => values.data?.data);
+  const isLoading = query.some((values) => values.isLoading);
 
-  return { query, data: results };
+  return { query, data: results, isLoading: isLoading };
 }
