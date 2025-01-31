@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import {
-  Area,
-  AreaChart,
   CartesianGrid,
   XAxis,
   YAxis,
   ResponsiveContainer,
+  LineChart,
+  Line,
 } from "recharts";
 
 import {
@@ -44,7 +44,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
   }, 0);
 
   const xAxiosInterval = Math.round(chartData.length / 12);
-  
+
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
@@ -59,7 +59,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
           className="h-[30rem] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <LineChart
               data={chartData}
               accessibilityLayer
               margin={{ left: 12, right: 12, top: 12 }}
@@ -126,42 +126,18 @@ export const Drawdowns = (props: DrawdownsProps) => {
                   />
                 }
               />
-              <defs>
-                {Array.from({ length: howManyItems }).map((_, idx) => {
-                  const i = idx + 1;
-                  return (
-                    <linearGradient
-                      id={"fillItem" + i}
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                      key={idx}
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor={`var(--color-item${i})`}
-                        stopOpacity={0.8}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={`var(--color-item${i})`}
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                  );
-                })}
-              </defs>
+
               {Array.from({ length: howManyItems }).map((_, idx) => {
                 const i = idx + 1;
                 return (
-                  <Area
+                  <Line
                     dataKey={`item${i}`}
                     type="linear"
                     fill={`url(#fillItem${i})`}
                     fillOpacity={0.4}
                     stroke={`var(--color-item${i})`}
-                    stackId="a"
+                    strokeWidth={2}
+                    dot={false}
                     isAnimationActive={false}
                     key={idx}
                   />
@@ -169,7 +145,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
               })}
 
               <ChartLegend content={<ChartLegendContent />} />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

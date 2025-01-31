@@ -8,16 +8,6 @@
 - [X] Fix the bottom chart tracker
 - [X] Redo the submit function.
 - [X] Form the right type of chartsDatas
-- [] Compare the index with the wallets
-- [] Reinvest the divident/provents
-- [] Make works the 3 wallets
-
-## ChartData Setting
-
-- Period: Is the period of investment, and dates
-- Item's: Each item inside the _chartData_ is a wallet...
-
-### Steps
-
-1 - The loop represents each tickets, so if we have a ticket, will loop just one time.
-2 - Results must storage each wallet's total calc percentage tickets
+- [ ] Compare the index with the wallets
+- [ ] Reinvest the divident/provents
+- [X] Make works the 3 wallets

@@ -50,7 +50,11 @@ export default function Home() {
         <BacktestForm onSubmit={submit} />
         <div className="w-full">
           {!chartState ? null : <BacktestCharts chartsDatas={chartState} />}
-          {stocks.isLoading && <Spin />}
+          {stocks.isLoading && (
+            <div className="w-full flex items-center justify-center">
+              <Spin />
+            </div>
+          )}
         </div>
       </main>
       <Footer />
