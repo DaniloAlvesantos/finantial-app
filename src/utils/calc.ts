@@ -7,10 +7,15 @@ type updateValueProps = TrendyProps & {
   prevInvest: number;
 };
 
+type updateValueWithMonthlyProps = updateValueProps & {
+  monthlyInvest: number;
+};
+
 type generalValuesProps = {
   periods: Date[];
   periodValues: number[];
   initialInvestiment: number;
+  monthlyInvest?: number;
 };
 
 export class Calcs {
@@ -29,10 +34,24 @@ export class Calcs {
     return newValue;
   }
 
+  updateValueWithMonthly({
+    currentValue,
+    prevInvest,
+    previousValue,
+    monthlyInvest,
+  }: updateValueWithMonthlyProps) {
+    const monthReturn: number = this.trendy({ previousValue, currentValue });
+    const newInvestment = prevInvest + monthlyInvest;
+    const newValue = newInvestment * (1 + monthReturn / 100);
+
+    return newValue;
+  }
+
   generalValues({
     initialInvestiment,
     periodValues,
     periods,
+    monthlyInvest,
   }: generalValuesProps) {
     if (initialInvestiment <= 0) {
       // throw new Error("Initial investment must be greater than zero.");
@@ -57,6 +76,7 @@ export class Calcs {
     const percentReturns = [{ value: 0, date: periods[0] }];
 
     let investmentValue = initialInvestiment;
+    let monthlyInvestValue = initialInvestiment;
     let maxValue = initialInvestiment;
     let maxDrawdows = 0;
 
@@ -69,7 +89,19 @@ export class Calcs {
         previousValue,
         prevInvest: investmentValue,
       });
-      timeline.push({ value: investmentValue, date: periods[i] });
+
+      if (monthlyInvest) {
+        monthlyInvestValue = this.updateValueWithMonthly({
+          currentValue,
+          previousValue,
+          prevInvest: monthlyInvestValue,
+          monthlyInvest,
+        });
+
+        timeline.push({ value: monthlyInvestValue, date: periods[i] });
+      } else {
+        timeline.push({ value: investmentValue, date: periods[i] });
+      }
 
       const currentPeriodTrendy = this.trendy({ currentValue, previousValue });
       percentReturns.push({ value: currentPeriodTrendy, date: periods[i] });

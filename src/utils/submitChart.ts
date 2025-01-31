@@ -79,6 +79,11 @@ const processTickets = ({
             ? Number(values.budget.initialInvestiment) *
               (Number(ticket[walletKey as keyof ChartDatas]) / 100)
             : Number(values.budget.initialInvestiment),
+        monthlyInvest:
+          values.tickets.length > 1
+            ? Number(values.budget.monthlyInvestiment) *
+              (Number(ticket[walletKey as keyof ChartDatas]) / 100)
+            : Number(values.budget.monthlyInvestiment),
       });
 
       totals.push(calcRes);
