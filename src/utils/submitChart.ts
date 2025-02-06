@@ -215,6 +215,9 @@ interface submitChartDataProps {
 export const submitChartData = ({ values, stocks }: submitChartDataProps) => {
   const requestedWallets = extractRequestedWallets(values);
   const chartsDatas = initializeChartData(requestedWallets);
+  const hasIndexes = Object.entries(values.config).some(
+    (value) => value[1] !== undefined && value[1] !== false
+  );
 
   requestedWallets.forEach((walletKey) => {
     const totals = processTickets({

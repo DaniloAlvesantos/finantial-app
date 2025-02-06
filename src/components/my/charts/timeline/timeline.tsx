@@ -90,7 +90,7 @@ export const TimelineChart = (props: timelineChartProps) => {
               />
               <YAxis
                 axisLine={{ stroke: "#E5E7EB" }}
-                tickMargin={8}
+                tickMargin={-1}
                 tickFormatter={(value) => currencyFormatter.format(value)}
                 tick={{ fill: "#6B7280", fontSize: 12 }}
                 className="font-poppins font-normal"
@@ -152,6 +152,7 @@ export const TimelineChart = (props: timelineChartProps) => {
                   );
                 })}
               </defs>
+              
               {Array.from({ length: howManyItems }).map((_, idx) => {
                 const i = idx + 1;
                 return (

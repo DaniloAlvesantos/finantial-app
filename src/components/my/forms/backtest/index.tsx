@@ -76,7 +76,7 @@ export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
           <Lightbulb className="size-6 " color="#f5d492" />
           <AlertTitle className="font-poppins">Dica</AlertTitle>
           <AlertDescription className="font-montserrat">
-            Ações ou índices que terminam com{" "}
+            Ações ou índices que terminam com
             <strong className="text-app-beige">.SA</strong> (South America),
             referem America do Sul.
           </AlertDescription>

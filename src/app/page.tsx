@@ -11,13 +11,16 @@ import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
 import { submitChartData } from "@/utils/submitChart";
 import { Spin } from "@/components/my/loading/spin/spin";
 import { ChartDatas } from "@/types/chartsDatas";
+import { useIndexes } from "@/hooks/useIndexes";
 
 export default function Home() {
   const [chartState, setChartState] = useState<ChartDatas | null>(null);
   const [tickets, setTickets] = useState<string[]>([]);
+  const [indexeState, setIndexeState] = useState<string[]>([]);
   const [formValues, setFormValues] = useState<TicketFormValues | null>(null);
   const [hasProcessedData, setHasProcessedData] = useState(false);
   const stocks = useMultStocks(tickets);
+  const indexes = useIndexes({ indexes: indexeState });
 
   const submit: SubmitHandler<TicketFormValues> = async (values) => {
     setFormValues(values);
@@ -27,7 +30,12 @@ export default function Home() {
       .map((ticket) => ticket.ticket)
       .filter((ticket) => ticket !== "");
 
+    const indexesVal = Object.entries(values.config)
+      .filter((index) => index[1] === true && index[0] !== "PROCEEDS")
+      .map((index) => index[0]);
+
     setTickets(ticketsVal);
+    setIndexeState(indexesVal);
   };
 
   useEffect(() => {
