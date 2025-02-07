@@ -1,3 +1,5 @@
+import { indexesResultsProps } from "@/utils/indexs";
+
 type DefaultValues = {
   value: number;
   period: string;
@@ -19,3 +21,10 @@ export type ChartDatas = {
   wallet2?: Wallet;
   wallet3?: Wallet;
 };
+
+export type SubmitResultChartDataProps =
+  | ChartDatas
+  | {
+      chartsDatas: ChartDatas;
+      indexesResults: indexesResultsProps | undefined;
+    };

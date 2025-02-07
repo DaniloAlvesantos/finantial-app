@@ -64,5 +64,5 @@ export function useIndexes({ indexes }: useIndexesProps) {
   const isLoading = queries.some((q) => q.isLoading);
   const isError = queries.some((q) => q.isError);
 
-  return { data: results, isLoading, isError };
+  return { data: results, isLoading, isError, orderedIndexes: indexes };
 }

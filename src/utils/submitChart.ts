@@ -4,6 +4,8 @@ import { Calcs } from "./calc";
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
+import { govResponse } from "@/types/govResponse";
+import { IndexesCalc } from "./indexs";
 
 const extractRequestedWallets = (values: TicketFormValues): Array<string> => {
   const requestedWallets = new Set<string>();
@@ -117,8 +119,6 @@ const aggregateChartData = ({
   const totalMonthlyReturns: number[] = [];
   const currentWallet = walletKey as keyof ChartDatas;
 
-  console.log(`${walletKey}`, totals);
-
   totals.forEach((total, idx) => {
     total.timeline.forEach((_, i) => {
       if (!totalTimeline[i]) totalTimeline[i] = 0;
@@ -210,14 +210,25 @@ interface submitChartDataProps {
     data: (AlphaVantageResponse | undefined)[];
     isLoading: boolean;
   };
+  indexes?: {
+    data: (AlphaVantageResponse | govResponse[] | null)[];
+    isLoading: boolean;
+    isError: boolean;
+    orderedIndexes: string[];
+  };
 }
 
-export const submitChartData = ({ values, stocks }: submitChartDataProps) => {
+export const submitChartData = ({
+  values,
+  stocks,
+  indexes,
+}: submitChartDataProps) => {
   const requestedWallets = extractRequestedWallets(values);
   const chartsDatas = initializeChartData(requestedWallets);
-  const hasIndexes = Object.entries(values.config).some(
-    (value) => value[1] !== undefined && value[1] !== false
-  );
+  const {
+    budget: { initialInvestiment, monthlyInvestiment },
+    period,
+  } = values;
 
   requestedWallets.forEach((walletKey) => {
     const totals = processTickets({
@@ -237,6 +248,19 @@ export const submitChartData = ({ values, stocks }: submitChartDataProps) => {
       // console.log(`Pandemic Data for ${walletKey}:`, pandemicData);
     }
   });
+
+  if (
+    indexes?.data.length &&
+    indexes.data.every((item) => item !== null || item !== undefined)
+  ) {
+    const indexesResults = new IndexesCalc({ indexes }).calcValues({
+      initialInvestiment: Number(initialInvestiment),
+      interval: period,
+      monthlyInvest: Number(monthlyInvestiment),
+    });
+
+    return { chartsDatas, indexesResults };
+  }
 
   return chartsDatas;
 };

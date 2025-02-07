@@ -1,5 +1,5 @@
 import { TrendingUp } from "lucide-react";
-import { CartesianGrid, XAxis, Area, AreaChart, ResponsiveContainer } from "recharts";
+import { CartesianGrid, XAxis, Area, AreaChart } from "recharts";
 import {
   Card,
   CardHeader,
@@ -40,7 +40,6 @@ export const AreaChartComp = (props: AreaChartProps) => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             accessibilityLayer
             data={chartData}
@@ -122,7 +121,6 @@ export const AreaChartComp = (props: AreaChartProps) => {
               stackId="a"
             />
           </AreaChart>
-          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
       <CardFooter>

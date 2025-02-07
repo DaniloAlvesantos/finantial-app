@@ -1,3 +1,10 @@
+/*
+
+  this.values.data sempre vai ser um array, precisamos verificar se dentro de data o valor for um array e pq vem do gov
+  se nao vem da alphavantage
+
+*/
+
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { govResponse } from "@/types/govResponse";
 import { Calcs } from "./calc";
@@ -8,6 +15,7 @@ interface IndexesProps {
     data: (AlphaVantageResponse | govResponse[] | null)[];
     isLoading: boolean;
     isError: boolean;
+    orderedIndexes: string[];
   };
 }
 
@@ -17,22 +25,29 @@ type CalcValuesProps = {
   interval: TicketFormValues["period"];
 };
 
-type CalcIBOVProps = CalcValuesProps["interval"];
-type CalcIndexProps = CalcValuesProps;
+type CalcIBOVProps = {
+  ibovData: AlphaVantageResponse;
+};
+
+type CalcIndexProps = Omit<CalcValuesProps, "interval">;
+
+export type indexesResultsProps = {
+  name: string;
+  results: { periodValues: number[]; periods: Date[] };
+  calcResults?: ReturnType<Calcs["generalValues"]>;
+}[];
 
 export class IndexesCalc {
   private values: IndexesProps["indexes"];
+  private interval: TicketFormValues["period"] | undefined;
 
   constructor({ indexes }: IndexesProps) {
     this.values = indexes;
   }
 
-  calcIBOV(props: CalcIBOVProps) {
+  calcIBOV({ ibovData }: CalcIBOVProps) {
     if (!this.values || this.values.isLoading || this.values.isError) return;
 
-    const { from, to } = props;
-
-    // Ensure we get AlphaVantageResponse, not govResponse[]
     const alphaVantageData = this.values.data.find(
       (item) => item && !Array.isArray(item)
     ) as AlphaVantageResponse | undefined;
@@ -59,7 +74,7 @@ export class IndexesCalc {
     return { periods, periodValues };
   }
 
-  calcIndex({ initialInvestiment, interval, monthlyInvest }: CalcIndexProps) {
+  calcIndex({ initialInvestiment, monthlyInvest }: CalcIndexProps) {
     if (!this.values || this.values.isLoading || this.values.isError) return;
 
     const res: { periods: Date; periodValues: number }[] = [];
@@ -78,8 +93,10 @@ export class IndexesCalc {
         investmentValue += monthlyInvest;
       }
 
+      const [day, month, year] = item.data.split("/").map(Number);
+
       res.push({
-        periods: new Date(item.data),
+        periods: new Date(year, month - 1, day),
         periodValues: investmentValue,
       });
     });
@@ -90,36 +107,48 @@ export class IndexesCalc {
     };
   }
 
-  calcValues({ initialInvestiment, interval, monthlyInvest }: CalcValuesProps) {
+  calcValues({
+    initialInvestiment,
+    interval,
+    monthlyInvest,
+  }: CalcValuesProps): indexesResultsProps | undefined {
     if (!this.values || this.values.isLoading || this.values.isError) return;
 
-    let periodResults;
+    this.interval = interval;
+    const indexesResults: indexesResultsProps = [];
 
-    if (Array.isArray(this.values.data)) {
-      periodResults = this.calcIndex({
-        initialInvestiment,
-        interval,
-        monthlyInvest,
+    for (let idx = 0; idx < this.values.data.length; idx++) {
+      let currentCalc;
+
+      if (Array.isArray(this.values.data[idx])) {
+        // if is an array, is an index from brazil gov
+        currentCalc = this.calcIndex({
+          initialInvestiment,
+          monthlyInvest,
+        });
+      } else {
+        currentCalc = this.calcIBOV({
+          ibovData: this.values.data[idx] as AlphaVantageResponse,
+        });
+      }
+
+      indexesResults.push({
+        name: this.values.orderedIndexes[idx],
+        results: currentCalc!,
       });
-    } else {
-      periodResults = this.calcIBOV(interval);
     }
 
-    if (!periodResults) return;
-
-    const calc = new Calcs().generalValues({
-      periods: periodResults.periods,
-      initialInvestiment,
-      periodValues: periodResults.periodValues,
-      monthlyInvest,
+    indexesResults.forEach((index) => {
+      if (index.name === "IBOVESPA") {
+        index.calcResults = new Calcs().generalValues({
+          initialInvestiment,
+          periodValues: index.results.periodValues,
+          periods: index.results.periods,
+          monthlyInvest,
+        });
+      }
     });
 
-    return {
-      ...calc,
-      timeline: calc.timeline.map((item) => ({
-        ...item,
-        value: Math.round(item.value),
-      })),
-    };
+    return indexesResults;
   }
 }

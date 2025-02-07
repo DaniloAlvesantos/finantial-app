@@ -5,7 +5,6 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  ResponsiveContainer,
   LineChart,
   Line,
 } from "recharts";
@@ -58,7 +57,6 @@ export const Drawdowns = (props: DrawdownsProps) => {
           config={chartConfigDefault}
           className="h-[30rem] w-full"
         >
-          <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={chartData}
               accessibilityLayer
@@ -146,7 +144,6 @@ export const Drawdowns = (props: DrawdownsProps) => {
 
               <ChartLegend content={<ChartLegendContent />} />
             </LineChart>
-          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>

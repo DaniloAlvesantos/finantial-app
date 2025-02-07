@@ -1,10 +1,20 @@
-import { ChartDatas } from "@/types/chartsDatas";
+/*
+  add indexes to timeline and annualReturns
+*/
+
+import { SubmitResultChartDataProps, ChartDatas } from "@/types/chartsDatas";
+import { indexesResultsProps } from "./indexs";
 
 interface formatChartDatas {
-  chartsDatas: ChartDatas;
+  chartsDatas: SubmitResultChartDataProps;
 }
 
 export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
+  console.log(chartsDatas)
+  if ("chartsDatas" in chartsDatas) {
+    chartsDatas = chartsDatas.chartsDatas;
+  }
+
   const donutData: any[] = [];
   const timelineData: any[] = [];
   const drawdownsData: any[] = [];

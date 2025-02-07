@@ -13,4 +13,16 @@ export const chartConfigDefault = {
     label: "Carteira-3",
     color: "hsl(var(--chart-3))",
   },
+  CDI: {
+    label: "CDI",
+    color: "hsl(var(--CDI))",
+  },
+  IPCA: {
+    label: "IPCA",
+    color: "hsl(var(--IPCA))",
+  },
+  IBOVESPA: {
+    label: "IBOVESPA",
+    color: "hsl(var(--IBOVESPA))",
+  },
 } satisfies ChartConfig;

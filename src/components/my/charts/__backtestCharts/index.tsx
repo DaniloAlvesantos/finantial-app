@@ -1,12 +1,12 @@
 import { TimelineChart } from "../timeline/timeline";
 import { DonutChart } from "../donutChart/donutChart";
-import { ChartDatas } from "@/types/chartsDatas";
+import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 import { Drawdowns } from "../drawdowns/drawdowns";
 import { AnnualReturns } from "../annualReturns/annualReturns";
 import { formatChartDatas } from "@/utils/formatChartDatas";
 
 interface BacktestChartsProps {
-  chartsDatas: ChartDatas;
+  chartsDatas: SubmitResultChartDataProps;
 }
 
 export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {

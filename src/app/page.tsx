@@ -10,11 +10,11 @@ import { useMultStocks } from "@/hooks/useMultStocks";
 import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
 import { submitChartData } from "@/utils/submitChart";
 import { Spin } from "@/components/my/loading/spin/spin";
-import { ChartDatas } from "@/types/chartsDatas";
+import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 import { useIndexes } from "@/hooks/useIndexes";
 
 export default function Home() {
-  const [chartState, setChartState] = useState<ChartDatas | null>(null);
+  const [chartState, setChartState] = useState<SubmitResultChartDataProps | null>(null);
   const [tickets, setTickets] = useState<string[]>([]);
   const [indexeState, setIndexeState] = useState<string[]>([]);
   const [formValues, setFormValues] = useState<TicketFormValues | null>(null);
@@ -39,17 +39,45 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (
-      formValues &&
-      stocks.data.length > 0 &&
-      !stocks.isLoading &&
-      !hasProcessedData
-    ) {
-      const chartsDatas = submitChartData({ values: formValues, stocks });
-      setChartState(chartsDatas);
-      setHasProcessedData(true);
+    if (indexeState.length) {
+      if (
+        formValues &&
+        stocks.data.length > 0 &&
+        !stocks.isLoading &&
+        !hasProcessedData &&
+        indexes.data.length &&
+        !indexes.isLoading
+      ) {
+        const chartsDatas = submitChartData({
+          values: formValues,
+          stocks,
+          indexes,
+        });
+        setChartState(chartsDatas);
+        setHasProcessedData(true);
+      }
+    } else {
+      if (
+        formValues &&
+        stocks.data.length > 0 &&
+        !stocks.isLoading &&
+        !hasProcessedData
+      ) {
+        const chartsDatas = submitChartData({
+          values: formValues,
+          stocks,
+        });
+        setChartState(chartsDatas);
+        setHasProcessedData(true);
+      }
     }
-  }, [stocks.data, stocks.isLoading, hasProcessedData]);
+  }, [
+    stocks.data,
+    stocks.isLoading,
+    hasProcessedData,
+    indexes.data,
+    indexes.isLoading,
+  ]);
 
   return (
     <>

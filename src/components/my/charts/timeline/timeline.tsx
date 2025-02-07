@@ -7,7 +7,6 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
-  ResponsiveContainer,
 } from "recharts";
 
 import {
@@ -59,7 +58,6 @@ export const TimelineChart = (props: timelineChartProps) => {
           config={chartConfigDefault}
           className="aspect-auto h-[15.625rem] w-full"
         >
-          <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={chartData}
               accessibilityLayer
@@ -170,7 +168,6 @@ export const TimelineChart = (props: timelineChartProps) => {
 
               <ChartLegend content={<ChartLegendContent />}  />
             </ComposedChart>
-          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
     </Card>
