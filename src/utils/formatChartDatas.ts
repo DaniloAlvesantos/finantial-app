@@ -80,7 +80,7 @@ export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
       }
     }
   }
-  console.log(indexesData)
+  console.log(indexesData);
 
   if (indexesData !== undefined && indexesData.length) {
     indexesData.forEach((index) => {
@@ -93,7 +93,10 @@ export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
       } else {
         index.calcResults?.timeline.forEach((value, i) => {
           timelineData[i] = { ...timelineData[i], [index.name]: value.value };
-          drawdownsData[i] = { ...drawdownsData[i], [index.name]: value.value };
+          drawdownsData[i] = {
+            ...drawdownsData[i],
+            [index.name]: Number(index.calcResults?.drawdowns[i].value) * -1,
+          };
         });
       }
     });
