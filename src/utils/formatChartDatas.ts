@@ -1,5 +1,5 @@
 /*
-  add indexes to timeline and annualReturns
+  create func to convert monthly returns to annualReturns or fix it in calc.ts
 */
 
 import { SubmitResultChartDataProps, ChartDatas } from "@/types/chartsDatas";
@@ -10,8 +10,9 @@ interface formatChartDatas {
 }
 
 export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
-  console.log(chartsDatas)
+  let indexesData: undefined | indexesResultsProps;
   if ("chartsDatas" in chartsDatas) {
+    indexesData = chartsDatas.indexesResults;
     chartsDatas = chartsDatas.chartsDatas;
   }
 
@@ -78,6 +79,24 @@ export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
         });
       }
     }
+  }
+  console.log(indexesData)
+
+  if (indexesData !== undefined && indexesData.length) {
+    indexesData.forEach((index) => {
+      if (index.name !== "IBOVESPA") {
+        if (timelineData.length === index.results.periodValues.length) {
+          index.results.periodValues.forEach((value, i) => {
+            timelineData[i] = { ...timelineData[i], [index.name]: value };
+          });
+        }
+      } else {
+        index.calcResults?.timeline.forEach((value, i) => {
+          timelineData[i] = { ...timelineData[i], [index.name]: value.value };
+          drawdownsData[i] = { ...drawdownsData[i], [index.name]: value.value };
+        });
+      }
+    });
   }
 
   return {

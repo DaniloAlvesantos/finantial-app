@@ -6,6 +6,7 @@ import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { govResponse } from "@/types/govResponse";
 import { IndexesCalc } from "./indexs";
+import { filterDataByPeriod } from "./filterDataByPeriod";
 
 const extractRequestedWallets = (values: TicketFormValues): Array<string> => {
   const requestedWallets = new Set<string>();
@@ -62,15 +63,14 @@ const processTickets = ({
         return;
       }
 
-      const periods = Object.keys(monthlyData)
-        .sort()
-        .map((date) => new Date(date))
-        .filter((date) => date.getFullYear() >= 2015);
+      const periodsRes = filterDataByPeriod({
+        data: monthlyData,
+        interval: values.period,
+      });
 
-      const periodValues = Object.entries(monthlyData)
-        .sort()
-        .filter((item) => new Date(item[0]).getFullYear() >= 2015)
-        .map((item) => Number(item[1]["5. adjusted close"]));
+      if (!periodsRes || Array.isArray(periodsRes)) return;
+
+      const { periods, periodValues } = periodsRes;
 
       const calcs = new Calcs();
       const calcRes = calcs.generalValues({
@@ -253,9 +253,11 @@ export const submitChartData = ({
     indexes?.data.length &&
     indexes.data.every((item) => item !== null || item !== undefined)
   ) {
-    const indexesResults = new IndexesCalc({ indexes }).calcValues({
-      initialInvestiment: Number(initialInvestiment),
+    const indexesResults = new IndexesCalc({
+      indexes,
       interval: period,
+    }).calcValues({
+      initialInvestiment: Number(initialInvestiment),
       monthlyInvest: Number(monthlyInvestiment),
     });
 

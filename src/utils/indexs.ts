@@ -17,19 +17,23 @@ interface IndexesProps {
     isError: boolean;
     orderedIndexes: string[];
   };
+  interval: TicketFormValues["period"];
 }
 
 type CalcValuesProps = {
   initialInvestiment: number;
   monthlyInvest?: number;
-  interval: TicketFormValues["period"];
 };
 
 type CalcIBOVProps = {
   ibovData: AlphaVantageResponse;
 };
 
-type CalcIndexProps = Omit<CalcValuesProps, "interval">;
+type CalcIndexProps = {
+  initialInvestiment: number;
+  monthlyInvest?: number;
+  indexData: govResponse[];
+};
 
 export type indexesResultsProps = {
   name: string;
@@ -40,9 +44,23 @@ export type indexesResultsProps = {
 export class IndexesCalc {
   private values: IndexesProps["indexes"];
   private interval: TicketFormValues["period"] | undefined;
+  private intervalDates: {
+    fromDate: Date | string;
+    toDate: Date | string;
+  } = {
+    fromDate: "",
+    toDate: "",
+  };
 
-  constructor({ indexes }: IndexesProps) {
+  constructor({ indexes, interval }: IndexesProps) {
     this.values = indexes;
+    this.interval = interval;
+    if (interval) {
+      this.intervalDates = {
+        fromDate: new Date(`${interval.from.year}-${interval.from.month}-01`),
+        toDate: new Date(`${interval.to.year}-${interval.to.month}-01`),
+      };
+    }
   }
 
   calcIBOV({ ibovData }: CalcIBOVProps) {
@@ -62,39 +80,46 @@ export class IndexesCalc {
     const periods = Object.keys(monthlyData)
       .sort()
       .map((date) => new Date(date))
-      .filter((date) => date.getFullYear() >= 2015);
+      .filter(
+        (date) =>
+          date >= this.intervalDates.fromDate &&
+          date <= this.intervalDates.toDate
+      );
 
     const periodValues = Object.entries(monthlyData)
       .sort()
-      .filter(([key]) => new Date(key).getFullYear() >= 2015)
-      .map(([, value]) =>
-        Number((value as { "5. adjusted close": string })["5. adjusted close"])
-      );
+      .filter(([date]) => {
+        const d = new Date(date);
+        return (
+          d >= this.intervalDates.fromDate && d <= this.intervalDates.toDate
+        );
+      })
+      .map(([, value]) => Number(value["5. adjusted close"]));
 
     return { periods, periodValues };
   }
 
-  calcIndex({ initialInvestiment, monthlyInvest }: CalcIndexProps) {
+  calcIndex({ initialInvestiment, monthlyInvest, indexData }: CalcIndexProps) {
     if (!this.values || this.values.isLoading || this.values.isError) return;
 
     const res: { periods: Date; periodValues: number }[] = [];
     let investmentValue = initialInvestiment;
 
-    const values = this.values.data
-      .flat() // Flatten if nested
-      .filter((item): item is govResponse => item !== null && "data" in item)
-      .filter((item) => new Date(item.data).getFullYear() >= 2015);
+    // Use the correct subset of data
+    const values = indexData.filter((item) => {
+      const d = new Date(item.data);
+      return d >= this.intervalDates.fromDate && d <= this.intervalDates.toDate;
+    });
 
     values.forEach((item) => {
-      const cdi = Number(item.valor) / 100;
-      investmentValue *= 1 + cdi;
+      const index = Number(item.valor) / 100;
+      investmentValue *= 1 + index;
 
       if (monthlyInvest) {
         investmentValue += monthlyInvest;
       }
 
       const [day, month, year] = item.data.split("/").map(Number);
-
       res.push({
         periods: new Date(year, month - 1, day),
         periodValues: investmentValue,
@@ -109,12 +134,10 @@ export class IndexesCalc {
 
   calcValues({
     initialInvestiment,
-    interval,
     monthlyInvest,
   }: CalcValuesProps): indexesResultsProps | undefined {
     if (!this.values || this.values.isLoading || this.values.isError) return;
 
-    this.interval = interval;
     const indexesResults: indexesResultsProps = [];
 
     for (let idx = 0; idx < this.values.data.length; idx++) {
@@ -125,6 +148,7 @@ export class IndexesCalc {
         currentCalc = this.calcIndex({
           initialInvestiment,
           monthlyInvest,
+          indexData: this.values.data[idx] as govResponse[],
         });
       } else {
         currentCalc = this.calcIBOV({
