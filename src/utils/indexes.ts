@@ -1,10 +1,3 @@
-/*
-
-  this.values.data sempre vai ser um array, precisamos verificar se dentro de data o valor for um array e pq vem do gov
-  se nao vem da alphavantage
-
-*/
-
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { govResponse } from "@/types/govResponse";
 import { Calcs } from "./calc";

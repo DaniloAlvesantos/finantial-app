@@ -18,6 +18,13 @@ type generalValuesProps = {
   monthlyInvest?: number;
 };
 
+type extractAnnualReturnsProps = {
+  monthlyRetuns: {
+    value: number;
+    date: Date;
+  }[];
+};
+
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
     if (previousValue === 0) {
@@ -45,6 +52,51 @@ export class Calcs {
     const newValue = newInvestment * (1 + monthReturn / 100);
 
     return newValue;
+  }
+
+  extractAnnualReturns({ monthlyRetuns }: extractAnnualReturnsProps) {
+    if (!Array.isArray(monthlyRetuns) || monthlyRetuns.length === 0) {
+      return [];
+    }
+
+    const totalAnnual = monthlyRetuns
+      .filter((item) => item.value !== undefined && !isNaN(item.value))
+      .map((entry) => ({
+        value: entry.value,
+        period:
+          entry.date instanceof Date && !isNaN(entry.date.getTime())
+            ? entry.date
+            : null,
+      }))
+      .filter((entry) => entry.period !== null) as {
+      value: number;
+      period: Date;
+    }[];
+
+    const groupedByYear = totalAnnual.reduce((acc, entry) => {
+      if (!entry.period) return acc;
+      const year = entry.period.getFullYear();
+      const monthlyReturn = entry.value / 100;
+
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(1 + monthlyReturn);
+      return acc;
+    }, {} as Record<number, number[]>);
+
+    const annualReturns = Object.keys(groupedByYear).map((year) => {
+      const product = groupedByYear[Number(year)].reduce(
+        (acc, value) => acc * value,
+        1
+      );
+      const result = (product - 1) * 100;
+    
+      return {
+        period: new Date(Number(year), 0, 1),
+        value: isNaN(result) ? 0 : Number(result.toFixed(2)),
+      };
+    });
+    
+    return annualReturns;
   }
 
   generalValues({
@@ -141,6 +193,9 @@ export class Calcs {
         : 0;
 
     const annualVolatility = Math.sqrt(variance) * Math.sqrt(12);
+    const annualReturns = this.extractAnnualReturns({
+      monthlyRetuns: percentReturns,
+    });
 
     return {
       timeline,
@@ -156,6 +211,7 @@ export class Calcs {
         ...r,
         value: Number(r.value.toFixed(2)),
       })),
+      annualReturns,
       periods,
     };
   }

@@ -1,9 +1,5 @@
-/*
-  create func to convert monthly returns to annualReturns or fix it in calc.ts
-*/
-
 import { SubmitResultChartDataProps, ChartDatas } from "@/types/chartsDatas";
-import { indexesResultsProps } from "./indexs";
+import { indexesResultsProps } from "./indexes";
 
 interface formatChartDatas {
   chartsDatas: SubmitResultChartDataProps;
@@ -80,7 +76,6 @@ export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
       }
     }
   }
-  console.log(indexesData);
 
   if (indexesData !== undefined && indexesData.length) {
     indexesData.forEach((index) => {
@@ -96,6 +91,12 @@ export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
           drawdownsData[i] = {
             ...drawdownsData[i],
             [index.name]: Number(index.calcResults?.drawdowns[i].value) * -1,
+          };
+        });
+        index.calcResults?.annualReturns.forEach((value, i) => {
+          annualReturnsData[i] = {
+            ...annualReturnsData[i],
+            [index.name]: Number(index.calcResults?.annualReturns[i].value),
           };
         });
       }

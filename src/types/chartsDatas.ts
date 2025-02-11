@@ -1,4 +1,4 @@
-import { indexesResultsProps } from "@/utils/indexs";
+import { indexesResultsProps } from "@/utils/indexes";
 
 type DefaultValues = {
   value: number;

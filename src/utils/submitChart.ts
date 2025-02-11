@@ -5,7 +5,7 @@ import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
 import { govResponse } from "@/types/govResponse";
-import { IndexesCalc } from "./indexs";
+import { IndexesCalc } from "./indexes";
 import { filterDataByPeriod } from "./filterDataByPeriod";
 
 const extractRequestedWallets = (values: TicketFormValues): Array<string> => {
@@ -153,31 +153,9 @@ const aggregateChartData = ({
     });
   });
 
-  const totalAnnual = totalMonthlyReturns.map((value, idx) => ({
-    value,
-    period: totals[0].periods[idx],
-  }));
-
-  const groupedByYear = totalAnnual.reduce((acc, entry) => {
-    const year = new Date(entry.period).getFullYear();
-    const monthlyReturn = entry.value / 100;
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(1 + monthlyReturn);
-    return acc;
-  }, {} as Record<number, number[]>);
-
-  const annualReturns = Object.keys(groupedByYear).map((year) => {
-    const product = groupedByYear[Number(year)].reduce(
-      (acc, value) => acc * value,
-      1
-    );
-    return {
-      period: new Date(`01-01-${year}`),
-      value: Number(((product - 1) * 100).toFixed(2)),
-    };
-  });
-
-  annualReturns.forEach((val) => {
+  totals[
+    Number(currentWallet.charAt(currentWallet.length))
+  ].annualReturns.forEach((val) => {
     chartsDatas[currentWallet]?.monthlyReturns.push({
       period: String(val.period),
       value: val.value,

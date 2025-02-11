@@ -35,7 +35,13 @@ export function AnnualReturns(props: AnnualReturnsProps) {
   const howManyItems = Object.keys(chartData[0]).reduce((acc, key) => {
     return key.includes("item") ? acc + 1 : acc;
   }, 0);
+
+  const howManyIndexes = Object.keys(chartData[0]).filter(
+    (key) => !key.includes("item") && key !== "period"
+  );
+
   const xAxiosInterval = Math.round(chartData.length / 12);
+
   return (
     <Card>
       <CardHeader>
@@ -113,6 +119,7 @@ export function AnnualReturns(props: AnnualReturnsProps) {
                 />
               }
             />
+
             {Array.from({ length: howManyItems }).map((_, idx) => {
               const i = idx + 1;
               return (
@@ -122,9 +129,21 @@ export function AnnualReturns(props: AnnualReturnsProps) {
                   radius={4}
                   key={idx}
                   isAnimationActive={false}
+                  barSize={80}
                 />
               );
             })}
+
+            {howManyIndexes.map((index, i) => (
+              <Bar
+                dataKey={index}
+                fill={`hsl(var(--${index}))`}
+                radius={4}
+                key={i + index}
+                isAnimationActive={false}
+                barSize={80}
+              />
+            ))}
             <ChartLegend content={<ChartLegendContent />} />
           </BarChart>
         </ChartContainer>
