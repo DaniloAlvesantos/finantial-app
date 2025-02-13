@@ -2,7 +2,15 @@ import { z } from "zod";
 
 export const backtestSchema = z.object({
   budget: z.object({
-    initialInvestiment: z.string(),
+    initialInvestiment: z.string().superRefine((val, ctx) => {
+      if (val.includes(".") || val.includes(",")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Não coloque vírgulas e pontos!",
+          fatal: true,
+        });
+      }
+    }),
     monthlyInvestiment: z.string().optional(),
   }),
   period: z.object({

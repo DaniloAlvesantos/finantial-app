@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Area, ComposedChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  ComposedChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Line,
+} from "recharts";
 
 import {
   Card,
@@ -70,7 +77,7 @@ export const TimelineChart = (props: timelineChartProps) => {
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return date
-                  .toLocaleDateString("en-US", {
+                  .toLocaleDateString("pt-BR", {
                     month: "short",
                     year: "numeric",
                   })
@@ -94,7 +101,7 @@ export const TimelineChart = (props: timelineChartProps) => {
             <ChartTooltip
               cursor={false}
               labelFormatter={(value) =>
-                `${new Date(value).toLocaleDateString("en-US", {
+                `${new Date(value).toLocaleDateString("pt-BR", {
                   month: "short",
                   year: "numeric",
                 })}`
@@ -124,79 +131,56 @@ export const TimelineChart = (props: timelineChartProps) => {
               }
             />
             <defs>
-              {Array.from({ length: howManyItems }).map((_, idx) => {
-                const i = idx + 1;
-                return (
-                  <linearGradient
-                    id={"fillItem" + i}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                    key={idx}
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor={`var(--color-item${i})`}
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={`var(--color-item${i})`}
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                );
-              })}
-
-              {howManyIndexes.map((index, i) => (
-                <linearGradient
-                  id={`fill${index}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                  key={index}
-                >
-                  <stop
-                    offset="5%"
-                    stopColor={`var(--color-${index})`}
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={`var(--color-${index})`}
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              ))}
+              <linearGradient id={"fillItem1"} x1="0" y1="0" x2="0" y2="1">
+                <stop
+                  offset="5%"
+                  stopColor={`var(--color-item1)`}
+                  stopOpacity={0.8}
+                />
+                <stop
+                  offset="95%"
+                  stopColor={`var(--color-item1)`}
+                  stopOpacity={0.1}
+                />
+              </linearGradient>
             </defs>
 
-            {Array.from({ length: howManyItems }).map((_, idx) => {
-              const i = idx + 1;
-              return (
-                <Area
-                  dataKey={`item${i}`}
-                  type="natural"
-                  fill={`url(#fillItem${i})`}
-                  fillOpacity={0.4}
-                  stroke={`var(--color-item${i})`}
-                  stackId="a"
-                  key={idx}
-                />
-              );
-            })}
+            {howManyItems === 1 ? (
+              <Area
+                dataKey={`item1`}
+                type="natural"
+                fill={`url(#fillItem1)`}
+                fillOpacity={0.4}
+                stroke={`var(--color-item1)`}
+                stackId={"a"}
+              />
+            ) : (
+              Array.from({ length: howManyItems }).map((_, idx) => {
+                const i = idx + 1;
+
+                return (
+                  <Line
+                    dataKey={`item${i}`}
+                    type="natural"
+                    fill={`url(#fillItem${i})`}
+                    fillOpacity={0.4}
+                    stroke={`var(--color-item${i})`}
+                    dot={false}
+                    key={idx}
+                  />
+                );
+              })
+            )}
 
             {howManyIndexes.map((index, i) => {
               return (
-                <Area
+                <Line
                   dataKey={index}
                   type="natural"
                   fill={`url(#fill${index})`}
                   fillOpacity={0.4}
                   stroke={`var(--color-${index})`}
-                  stackId="a"
-                  key={index}
+                  dot={false}
                 />
               );
             })}

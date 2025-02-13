@@ -69,7 +69,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return date
-                  .toLocaleDateString("en-US", {
+                  .toLocaleDateString("pt-BR", {
                     month: "short",
                     year: "numeric",
                   })
@@ -93,7 +93,7 @@ export const Drawdowns = (props: DrawdownsProps) => {
             <ChartTooltip
               cursor={false}
               labelFormatter={(value) =>
-                `${new Date(value).toLocaleDateString("en-US", {
+                `${new Date(value).toLocaleDateString("pt-BR", {
                   month: "short",
                   year: "numeric",
                 })}`

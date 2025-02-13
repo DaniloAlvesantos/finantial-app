@@ -100,7 +100,8 @@ export class IndexesCalc {
 
     // Use the correct subset of data
     const values = indexData.filter((item) => {
-      const d = new Date(item.data);
+      const [day, month, year] = item.data.split("/").map(Number);
+      const d = new Date(year, month - 1, day);
       return d >= this.intervalDates.fromDate && d <= this.intervalDates.toDate;
     });
 

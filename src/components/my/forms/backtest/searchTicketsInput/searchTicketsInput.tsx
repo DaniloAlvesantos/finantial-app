@@ -14,7 +14,7 @@ export const SearchTicketInput = ({
   onChange,
 }: SearchTicketInputProps) => {
   const handleValue = (event: ChangeEvent<HTMLInputElement>) => {
-    onChange(event.currentTarget.value);
+    onChange(event.currentTarget.value.toUpperCase());
   };
 
   return (

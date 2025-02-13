@@ -1,8 +1,18 @@
-import { TimelineChart } from "../timeline/timeline";
-import { DonutChart } from "../donutChart/donutChart";
+/*
+
+  add calcs res to props and submitResultprops
+  to add to tables
+
+*/
+
 import { SubmitResultChartDataProps } from "@/types/chartsDatas";
+
+import { table } from "@/components/ui"
+import { DonutChart } from "../donutChart/donutChart";
+import { TimelineChart } from "../timeline/timeline";
 import { Drawdowns } from "../drawdowns/drawdowns";
 import { AnnualReturns } from "../annualReturns/annualReturns";
+
 import { formatChartDatas } from "@/utils/formatChartDatas";
 
 interface BacktestChartsProps {
