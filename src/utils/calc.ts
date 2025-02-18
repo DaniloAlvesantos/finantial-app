@@ -25,6 +25,12 @@ type extractAnnualReturnsProps = {
   }[];
 };
 
+type extractCARGProps = {
+  investmentValue: number;
+  initialInvestiment: number;
+  years: number;
+};
+
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
     if (previousValue === 0) {
@@ -89,14 +95,24 @@ export class Calcs {
         1
       );
       const result = (product - 1) * 100;
-    
+
       return {
         period: new Date(Number(year), 0, 1),
         value: isNaN(result) ? 0 : Number(result.toFixed(2)),
       };
     });
-    
+
     return annualReturns;
+  }
+
+  extractCAGR({
+    investmentValue,
+    initialInvestiment,
+    years,
+  }: extractCARGProps) {
+    return (
+      (Math.pow(investmentValue / initialInvestiment, 1 / years) - 1) * 100
+    );
   }
 
   generalValues({
@@ -174,7 +190,7 @@ export class Calcs {
 
     const cagr =
       years > 0
-        ? (Math.pow(investmentValue / initialInvestiment, 1 / years) - 1) * 100
+        ? this.extractCAGR({ years, initialInvestiment, investmentValue })
         : 0;
 
     const avgReturn =
@@ -197,10 +213,14 @@ export class Calcs {
       monthlyRetuns: percentReturns,
     });
 
+    let totalInvested = monthlyInvest
+      ? periods.length * monthlyInvest + initialInvestiment
+      : initialInvestiment;
+
     return {
       timeline,
       cumulativeReturn: Number(cumulativeReturn.toFixed(2)),
-      maxDrawdown: Number((maxDrawdows * 100).toFixed(2)),
+      maxDrawdown: Number((maxDrawdows * 100).toFixed(2)) * -1,
       drawdowns: drawdowns.map((d) => ({
         ...d,
         value: Number((d.value * 100).toFixed(2)),
@@ -213,6 +233,7 @@ export class Calcs {
       })),
       annualReturns,
       periods,
+      totalInvested,
     };
   }
 }

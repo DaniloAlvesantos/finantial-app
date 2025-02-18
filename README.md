@@ -11,3 +11,15 @@
 - [X] Compare the index with the wallets
 - [ ] Reinvest the divident/provents
 - [X] Make works the 3 wallets
+- [X] Remove title and subTitle from charts comp props
+- [ ] Toggle stocks
+- [ ] React Rewards
+    - [ ] Generate button to portifolio url
+    - [ ] Generate button portifolio pdf
+- [ ] Download zustand
+- [ ] Forms
+    - [ ] Scroll to error
+    - [ ] Vibrate on error
+- [ ] Create a README.md to docs the project 
+- [ ] Fix the current currency
+- [ ] Improve design

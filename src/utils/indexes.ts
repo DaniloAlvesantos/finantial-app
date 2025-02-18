@@ -1,7 +1,7 @@
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { govResponse } from "@/types/govResponse";
 import { Calcs } from "./calc";
-import { TicketFormValues } from "@/components/my/forms/backtest/type";
+import { TicketFormValues } from "@/components/forms/backtest/type";
 
 interface IndexesProps {
   indexes: {
@@ -34,7 +34,7 @@ export type indexesResultsProps = {
   calcResults?: ReturnType<Calcs["generalValues"]>;
 }[];
 
-export class IndexesCalc {
+export class IndexesCalc extends Calcs {
   private values: IndexesProps["indexes"];
   private interval: TicketFormValues["period"] | undefined;
   private intervalDates: {
@@ -46,6 +46,7 @@ export class IndexesCalc {
   };
 
   constructor({ indexes, interval }: IndexesProps) {
+    super();
     this.values = indexes;
     this.interval = interval;
     if (interval) {
@@ -138,7 +139,6 @@ export class IndexesCalc {
       let currentCalc;
 
       if (Array.isArray(this.values.data[idx])) {
-        // if is an array, is an index from brazil gov
         currentCalc = this.calcIndex({
           initialInvestiment,
           monthlyInvest,
@@ -150,22 +150,19 @@ export class IndexesCalc {
         });
       }
 
+      const calcResults = super.generalValues({
+        initialInvestiment,
+        periodValues: currentCalc!.periodValues,
+        periods: currentCalc!.periods,
+        monthlyInvest,
+      });
+
       indexesResults.push({
         name: this.values.orderedIndexes[idx],
         results: currentCalc!,
+        calcResults,
       });
     }
-
-    indexesResults.forEach((index) => {
-      if (index.name === "IBOVESPA") {
-        index.calcResults = new Calcs().generalValues({
-          initialInvestiment,
-          periodValues: index.results.periodValues,
-          periods: index.results.periods,
-          monthlyInvest,
-        });
-      }
-    });
 
     return indexesResults;
   }

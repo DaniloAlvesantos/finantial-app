@@ -1,4 +1,4 @@
-import { TicketFormValues } from "@/components/my/forms/backtest/type";
+import { TicketFormValues } from "@/components/forms/backtest/type";
 import { AlphaVantageResponse } from "@/types/alphaVantageResponse";
 import { govResponse } from "@/types/govResponse";
 

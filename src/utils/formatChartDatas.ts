@@ -1,112 +1,112 @@
-import { SubmitResultChartDataProps, ChartDatas } from "@/types/chartsDatas";
+import {
+  SubmitResultChartDataProps,
+  ChartDatas,
+  TotalCalcs,
+} from "@/types/chartsDatas";
 import { indexesResultsProps } from "./indexes";
+import { TotalWalletsCalcProps } from "./submitChart";
 
-interface formatChartDatas {
+interface FormatChartDatasProps {
   chartsDatas: SubmitResultChartDataProps;
 }
 
-export const formatChartDatas = ({ chartsDatas }: formatChartDatas) => {
-  let indexesData: undefined | indexesResultsProps;
+export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
+  let indexesData: indexesResultsProps | undefined;
+  let totalCalcs: TotalCalcs | undefined;
+
   if ("chartsDatas" in chartsDatas) {
-    indexesData = chartsDatas.indexesResults;
-    chartsDatas = chartsDatas.chartsDatas;
+    ({ indexesResults: indexesData, totalCalcs, chartsDatas } = chartsDatas);
   }
 
-  const donutData: any[] = [];
-  const timelineData: any[] = [];
-  const drawdownsData: any[] = [];
-  const annualReturnsData: any[] = [];
+  const wallets = Object.keys(chartsDatas);
 
-  for (let i = 1; i <= Object.keys(chartsDatas).length; i++) {
-    donutData.push({
-      value: chartsDatas[`wallet${i}` as keyof ChartDatas]?.tickersPercentage,
+  const donutData = wallets.map((wallet) => ({
+    value: chartsDatas[wallet as keyof ChartDatas]?.tickersPercentage,
+  }));
+
+  const timelineData: Record<string, any>[] = [];
+  const drawdownsData: Record<string, any>[] = [];
+  const annualReturnsData: Record<string, any>[] = [];
+  const totalCalcsData: {
+    symbol: string;
+    values: TotalWalletsCalcProps;
+  }[] = [];
+
+  chartsDatas.wallet1.timeline.forEach((_, idx) => {
+    const timelineEntry: Record<string, any> = {
+      period: chartsDatas.wallet1.timeline[idx].period,
+    };
+    const drawdownsEntry: Record<string, any> = {
+      period: chartsDatas.wallet1.drawdowns[idx].period,
+    };
+
+    wallets.forEach((wallet, wIndex) => {
+      timelineEntry[`item${wIndex + 1}`] =
+        chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value;
+      drawdownsEntry[`item${wIndex + 1}`] =
+        chartsDatas[wallet as keyof ChartDatas]?.drawdowns[idx].value;
     });
-  }
 
-  for (let idx = 0; idx < chartsDatas.wallet1.timeline.length; idx++) {
-    for (let WIndex = 1; WIndex <= Object.keys(chartsDatas).length; WIndex++) {
-      if (timelineData[idx] !== undefined) {
-        timelineData[idx] = {
-          ...timelineData[idx],
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.timeline[idx]
-              .value,
-        };
-        drawdownsData[idx] = {
-          ...drawdownsData[idx],
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.drawdowns[idx]
-              .value,
-        };
-      } else {
-        timelineData.push({
-          period: chartsDatas.wallet1.timeline[idx].period,
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.timeline[idx]
-              .value,
-        });
-        drawdownsData.push({
-          period: chartsDatas.wallet1.drawdowns[idx].period,
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.drawdowns[idx]
-              .value,
-        });
-      }
-    }
-  }
+    timelineData.push(timelineEntry);
+    drawdownsData.push(drawdownsEntry);
+  });
 
-  for (let idx = 0; idx < chartsDatas.wallet1.monthlyReturns.length; idx++) {
-    for (let WIndex = 1; WIndex <= Object.keys(chartsDatas).length; WIndex++) {
-      if (annualReturnsData[idx] !== undefined) {
-        annualReturnsData[idx] = {
-          ...annualReturnsData[idx],
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.monthlyReturns[
-              idx
-            ].value,
-        };
-      } else {
-        annualReturnsData.push({
-          period: chartsDatas.wallet1.monthlyReturns[idx].period,
-          [`item${WIndex}`]:
-            chartsDatas[`wallet${WIndex}` as keyof ChartDatas]?.monthlyReturns[
-              idx
-            ].value,
-        });
-      }
-    }
-  }
+  chartsDatas.wallet1.monthlyReturns.forEach((_, idx) => {
+    const annualReturnsEntry: Record<string, any> = {
+      period: chartsDatas.wallet1.monthlyReturns[idx].period,
+    };
 
-  if (indexesData !== undefined && indexesData.length) {
+    wallets.forEach((wallet, wIndex) => {
+      annualReturnsEntry[`item${wIndex + 1}`] =
+        chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value;
+    });
+
+    annualReturnsData.push(annualReturnsEntry);
+  });
+
+  if (indexesData?.length) {
     indexesData.forEach((index) => {
       if (index.name !== "IBOVESPA") {
         if (timelineData.length === index.results.periodValues.length) {
           index.results.periodValues.forEach((value, i) => {
             timelineData[i] = { ...timelineData[i], [index.name]: value };
           });
+          totalCalcsData.push({
+            symbol: index.name,
+            values: index.calcResults!,
+          });
         }
       } else {
+        1;
         index.calcResults?.timeline.forEach((value, i) => {
           timelineData[i] = { ...timelineData[i], [index.name]: value.value };
           drawdownsData[i] = {
             ...drawdownsData[i],
-            [index.name]: Number(index.calcResults?.drawdowns[i].value) * -1,
+            [index.name]: -Number(index.calcResults?.drawdowns[i].value),
           };
         });
+
         index.calcResults?.annualReturns.forEach((value, i) => {
           annualReturnsData[i] = {
             ...annualReturnsData[i],
-            [index.name]: Number(index.calcResults?.annualReturns[i].value),
+            [index.name]: Number(value.value),
           };
         });
+
+        totalCalcsData.push({ symbol: index.name, values: index.calcResults! });
       }
     });
   }
+
+  totalCalcs!.forEach((calc) => {
+    totalCalcsData.push({ symbol: calc.symbol, values: calc.values });
+  });
 
   return {
     donutData,
     timelineData,
     drawdownsData,
     annualReturnsData,
+    totalCalcsData,
   };
 };

@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { CartesianGrid, XAxis, YAxis, LineChart, Line } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
   Card,
@@ -17,16 +16,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+
 import { chartConfigDefault } from "../chartTypes";
 
-export interface DrawdownsProps {
+interface AnnualReturnsProps {
   chartData: any[];
-  title: string;
-  descrip: string;
 }
 
-export const Drawdowns = (props: DrawdownsProps) => {
-  const { chartData, descrip, title } = props;
+export function AnnualReturns(props: AnnualReturnsProps) {
+  const { chartData } = props;
 
   if (!chartData || !chartData.length) {
     return;
@@ -36,28 +34,26 @@ export const Drawdowns = (props: DrawdownsProps) => {
     return key.includes("item") ? acc + 1 : acc;
   }, 0);
 
-  const xAxiosInterval = Math.round(chartData.length / 12);
-
   const howManyIndexes = Object.keys(chartData[0]).filter(
     (key) => !key.includes("item") && key !== "period"
   );
 
+  const xAxiosInterval = Math.round(chartData.length / 12);
+
   return (
     <Card>
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
-        <div className="flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{descrip}</CardDescription>
-        </div>
+      <CardHeader>
+        <CardTitle>Retorno Anual</CardTitle>
+        <CardDescription>Veja os retornos anuais</CardDescription>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent>
         <ChartContainer
           config={chartConfigDefault}
-          className="h-[30rem] w-full"
+          className="aspect-auto w-full h-[30rem]"
         >
-          <LineChart
-            data={chartData}
+          <BarChart
             accessibilityLayer
+            data={chartData}
             margin={{ left: 12, right: 12, top: 12 }}
           >
             <CartesianGrid vertical={false} />
@@ -77,7 +73,6 @@ export const Drawdowns = (props: DrawdownsProps) => {
               }}
               interval={xAxiosInterval}
               className="font-poppins font-normal text-xs"
-              angle={-35}
               textAnchor="end"
               tick={{ fontSize: 10 }}
               minTickGap={1000}
@@ -90,11 +85,11 @@ export const Drawdowns = (props: DrawdownsProps) => {
               tick={{ fill: "#6B7280", fontSize: 12 }}
               className="font-poppins font-normal"
             />
+
             <ChartTooltip
               cursor={false}
               labelFormatter={(value) =>
                 `${new Date(value).toLocaleDateString("pt-BR", {
-                  month: "short",
                   year: "numeric",
                 })}`
               }
@@ -126,38 +121,31 @@ export const Drawdowns = (props: DrawdownsProps) => {
             {Array.from({ length: howManyItems }).map((_, idx) => {
               const i = idx + 1;
               return (
-                <Line
+                <Bar
                   dataKey={`item${i}`}
-                  type="linear"
-                  fill={`url(#fillItem${i})`}
-                  fillOpacity={0.4}
-                  stroke={`var(--color-item${i})`}
-                  strokeWidth={2}
-                  dot={false}
-                  isAnimationActive={false}
+                  fill={`hsl(var(--chart-${i}))`}
+                  radius={4}
                   key={idx}
+                  isAnimationActive={false}
+                  barSize={80}
                 />
               );
             })}
 
             {howManyIndexes.map((index, i) => (
-              <Line
+              <Bar
                 dataKey={index}
-                type="linear"
-                fill={`url(#fill${index})`}
-                fillOpacity={0.4}
-                stroke={`var(--color-${index})`}
-                strokeWidth={2}
-                dot={false}
+                fill={`hsl(var(--${index}))`}
+                radius={4}
+                key={i + index}
                 isAnimationActive={false}
-                key={index+i}
+                barSize={80}
               />
             ))}
-
             <ChartLegend content={<ChartLegendContent />} />
-          </LineChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
   );
-};
+}

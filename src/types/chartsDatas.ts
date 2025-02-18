@@ -1,4 +1,5 @@
 import { indexesResultsProps } from "@/utils/indexes";
+import { TotalWalletsCalcProps } from "@/utils/submitChart";
 
 type DefaultValues = {
   value: number;
@@ -22,9 +23,15 @@ export type ChartDatas = {
   wallet3?: Wallet;
 };
 
+export type TotalCalcs = {
+  symbol: string;
+  values: TotalWalletsCalcProps;
+}[];
+
 export type SubmitResultChartDataProps =
   | ChartDatas
   | {
       chartsDatas: ChartDatas;
-      indexesResults: indexesResultsProps | undefined;
+      indexesResults?: indexesResultsProps | undefined;
+      totalCalcs?: TotalCalcs;
     };

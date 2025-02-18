@@ -26,3 +26,7 @@ export const chartConfigDefault = {
     color: "hsl(var(--IBOVESPA))",
   },
 } satisfies ChartConfig;
+
+export type DefaultChartProps = {
+  chartData: any[];
+};

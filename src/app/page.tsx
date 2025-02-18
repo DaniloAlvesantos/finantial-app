@@ -1,20 +1,21 @@
 "use client";
 
-import { BacktestForm } from "@/components/my/forms";
-import { Header } from "@/components/my/header";
+import { BacktestForm } from "@/components/forms";
+import { Header } from "@/components/header";
 import { SubmitHandler } from "react-hook-form";
 import { useEffect, useState } from "react";
-import { TicketFormValues } from "@/components/my/forms/backtest/type";
-import { Footer } from "@/components/my/footer/footer";
+import { TicketFormValues } from "@/components/forms/backtest/type";
+import { Footer } from "@/components/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
-import { BacktestCharts } from "@/components/my/charts/__backtestCharts";
+import { BacktestCharts } from "@/components/charts/__backtestCharts";
 import { submitChartData } from "@/utils/submitChart";
-import { Spin } from "@/components/my/loading/spin/spin";
+import { Spin } from "@/components/loading/spin/spin";
 import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 import { useIndexes } from "@/hooks/useIndexes";
 
 export default function Home() {
-  const [chartState, setChartState] = useState<SubmitResultChartDataProps | null>(null);
+  const [chartState, setChartState] =
+    useState<SubmitResultChartDataProps | null>(null);
   const [tickets, setTickets] = useState<string[]>([]);
   const [indexeState, setIndexeState] = useState<string[]>([]);
   const [formValues, setFormValues] = useState<TicketFormValues | null>(null);

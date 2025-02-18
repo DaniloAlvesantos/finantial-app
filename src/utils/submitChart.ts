@@ -1,5 +1,5 @@
 import { ChartDatas } from "@/types/chartsDatas";
-import { TicketFormValues } from "@/components/my/forms/backtest/type";
+import { TicketFormValues } from "@/components/forms/backtest/type";
 import { Calcs } from "./calc";
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { UseQueryResult } from "@tanstack/react-query";
@@ -52,7 +52,7 @@ const processTickets = ({
   stocksData,
   chartsDatas,
   walletKey,
-}: ProcessTicketsProps) => {
+}: ProcessTicketsProps): ReturnType<Calcs["generalValues"]>[] => {
   const totals: ReturnType<Calcs["generalValues"]>[] = [];
 
   values.tickets.forEach((ticket, idx) => {
@@ -128,12 +128,6 @@ const aggregateChartData = ({
       totalTimeline[i] += Number(total.timeline[i].value);
 
       Number(values.tickets[idx][currentWallet]) !== 0
-        ? (totalDrawdowns[i] +=
-            Number(total.drawdowns[i].value * -1) *
-            (Number(values.tickets[idx][currentWallet]) / 100))
-        : (totalDrawdowns[i] += Number(total.drawdowns[i].value * -1));
-
-      Number(values.tickets[idx][currentWallet]) !== 0
         ? (totalMonthlyReturns[i] +=
             Number(total.monthlyRetuns[i].value) *
             (Number(values.tickets[idx][currentWallet]) / 100))
@@ -141,14 +135,19 @@ const aggregateChartData = ({
     });
   });
 
+  let peak = -Infinity;
+
   totalTimeline.forEach((value, i) => {
+    if (value > peak) peak = value;
+    totalDrawdowns[i] = (value - peak) / peak;
+
     chartsDatas[currentWallet]?.timeline.push({
       value,
       period: String(totals[0].periods[i]),
     });
 
     chartsDatas[currentWallet]?.drawdowns.push({
-      value: totalDrawdowns[i],
+      value: totalDrawdowns[i] * 100, // Convert to percentage
       period: String(totals[0].periods[i]),
     });
   });
@@ -161,24 +160,6 @@ const aggregateChartData = ({
       value: val.value,
     });
   });
-};
-
-const extractPandemicPeriod = (periods: Date[], periodValues: number[]) => {
-  const startPandemic = new Date("2020-01-01");
-  const endPandemic = new Date("2021-12-31");
-
-  const pandemicPeriods: { period: Date; value: number }[] = [];
-
-  periods.forEach((date, index) => {
-    if (date >= startPandemic && date <= endPandemic) {
-      pandemicPeriods.push({
-        period: date,
-        value: periodValues[index],
-      });
-    }
-  });
-
-  return pandemicPeriods;
 };
 
 interface submitChartDataProps {
@@ -196,6 +177,14 @@ interface submitChartDataProps {
   };
 }
 
+export type TotalWalletsCalcProps = {
+  cagr: number;
+  totalInvested: number;
+  cumulativeReturn: number;
+  annualVolatility: number;
+  maxDrawdown: number;
+};
+
 export const submitChartData = ({
   values,
   stocks,
@@ -203,12 +192,18 @@ export const submitChartData = ({
 }: submitChartDataProps) => {
   const requestedWallets = extractRequestedWallets(values);
   const chartsDatas = initializeChartData(requestedWallets);
+  let totalWallets: {
+    symbol: string;
+    calcs: ReturnType<Calcs["generalValues"]>[];
+  }[] = [];
+
   const {
     budget: { initialInvestiment, monthlyInvestiment },
     period,
   } = values;
 
-  requestedWallets.forEach((walletKey) => {
+  requestedWallets.forEach((walletKey, i) => {
+    // totals of each ticker in each wallet
     const totals = processTickets({
       values,
       stocksData: stocks.data,
@@ -216,15 +211,45 @@ export const submitChartData = ({
       walletKey,
     });
 
+    totalWallets.push({
+      symbol: `Carteira-${i + 1}`,
+      calcs: totals,
+    });
+
     aggregateChartData({ chartsDatas, totals, walletKey, values });
+  });
 
-    if (totals.length) {
-      const periods = totals[0].periods;
-      const periodValues = totals[0].timeline.map((t) => t.value);
+  const totalCalcs: {
+    symbol: string;
+    values: TotalWalletsCalcProps;
+  }[] = [];
 
-      const pandemicData = extractPandemicPeriod(periods, periodValues);
-      // console.log(`Pandemic Data for ${walletKey}:`, pandemicData);
-    }
+  totalWallets.forEach((wallet, i) => {
+    const currentWallet: TotalWalletsCalcProps = {
+      cagr: 0,
+      totalInvested: 0,
+      cumulativeReturn: 0,
+      annualVolatility: 0,
+      maxDrawdown: 0,
+    };
+
+    wallet.calcs.forEach((calc) => {
+      currentWallet.cagr += calc.cagr;
+      currentWallet.annualVolatility += calc.annualVolatility;
+      currentWallet.maxDrawdown += calc.maxDrawdown;
+      currentWallet.totalInvested += calc.totalInvested;
+      currentWallet.cumulativeReturn += calc.cumulativeReturn;
+    });
+
+    totalCalcs.push({
+      symbol: wallet.symbol,
+      values: {
+        ...currentWallet,
+        maxDrawdown: Math.min(
+          ...chartsDatas[`wallet1`].drawdowns.map((d) => d.value)
+        ),
+      },
+    });
   });
 
   if (
@@ -239,8 +264,8 @@ export const submitChartData = ({
       monthlyInvest: Number(monthlyInvestiment),
     });
 
-    return { chartsDatas, indexesResults };
+    return { chartsDatas, indexesResults, totalCalcs };
   }
 
-  return chartsDatas;
+  return { chartsDatas, totalCalcs };
 };

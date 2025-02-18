@@ -29,12 +29,10 @@ import { chartConfigDefault } from "../chartTypes";
 
 export interface timelineChartProps {
   chartData: any[];
-  title: string;
-  descrip: string;
 }
 
 export const TimelineChart = (props: timelineChartProps) => {
-  const { chartData, descrip, title } = props;
+  const { chartData } = props;
 
   if (!chartData || !chartData.length) {
     return;
@@ -54,8 +52,8 @@ export const TimelineChart = (props: timelineChartProps) => {
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{descrip}</CardDescription>
+          <CardTitle>Valorização da carteira</CardTitle>
+          <CardDescription>Veja a valorização da carteira</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
@@ -181,6 +179,7 @@ export const TimelineChart = (props: timelineChartProps) => {
                   fillOpacity={0.4}
                   stroke={`var(--color-${index})`}
                   dot={false}
+                  key={index}
                 />
               );
             })}
