@@ -7,6 +7,11 @@ import { AnnualReturns } from "../annualReturns/annualReturns";
 
 import { formatChartDatas } from "@/utils/formatChartDatas";
 import { BackTestTable } from "../../tables/backtestTable";
+import {
+  GenerateBackTestPDFButton,
+  ShareBackTestButton,
+} from "@/components/buttons/shareBacktest";
+import { File } from "lucide-react";
 
 interface BacktestChartsProps {
   chartsDatas: SubmitResultChartDataProps;
@@ -26,12 +31,22 @@ export const BacktestCharts = ({ chartsDatas }: BacktestChartsProps) => {
   } = formatChartDatas({ chartsDatas });
 
   return (
-    <div className="flex flex-col gap-4 mt-8">
-      <DonutChart chartData={donutData} />
-      <BackTestTable tableData={totalCalcsData} />
-      <TimelineChart chartData={timelineData} />
-      <Drawdowns chartData={drawdownsData} />
-      <AnnualReturns chartData={annualReturnsData} />
-    </div>
+    <section>
+      <hr />
+      <span className="flex flex-col items-left mt-8">
+        <h3 className="ml-4 font-poppins font-bold text-xl">Resultados</h3>
+        <div>
+          <ShareBackTestButton />
+          <GenerateBackTestPDFButton />
+        </div>
+      </span>
+      <main className="flex flex-col gap-4">
+        <BackTestTable tableData={totalCalcsData} />
+        <DonutChart chartData={donutData} />
+        <TimelineChart chartData={timelineData} />
+        <Drawdowns chartData={drawdownsData} />
+        <AnnualReturns chartData={annualReturnsData} />
+      </main>
+    </section>
   );
 };

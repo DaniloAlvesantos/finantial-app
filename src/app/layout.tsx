@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Poppins } from "next/font/google";
 import "./globals.css";
-import { ReactQueryProvider } from "@/context/query";
+import { ReactQueryProvider } from "@/contexts/query";
 
 const montserrat = Montserrat({
   subsets: ["latin"],

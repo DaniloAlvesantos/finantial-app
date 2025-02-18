@@ -40,7 +40,7 @@ export const BackTestTable = ({ tableData }: BacktestTableProps) => {
               {currencyFormatter.format(value.values.totalInvested)}
             </table.TableCell>
             <table.TableCell>
-              {currencyFormatter.format(value.values.cumulativeReturn)}
+              {value.values.cumulativeReturn + "%"}
             </table.TableCell>
             <table.TableCell></table.TableCell>
             <table.TableCell>

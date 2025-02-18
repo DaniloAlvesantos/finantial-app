@@ -12,6 +12,7 @@ import { submitChartData } from "@/utils/submitChart";
 import { Spin } from "@/components/loading/spin/spin";
 import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 import { useIndexes } from "@/hooks/useIndexes";
+import { useBackTestStore } from "@/stores/backTest";
 
 export default function Home() {
   const [chartState, setChartState] =
@@ -22,6 +23,7 @@ export default function Home() {
   const [hasProcessedData, setHasProcessedData] = useState(false);
   const stocks = useMultStocks(tickets);
   const indexes = useIndexes({ indexes: indexeState });
+  const { setFormState } = useBackTestStore();
 
   const submit: SubmitHandler<TicketFormValues> = async (values) => {
     setFormValues(values);
@@ -56,6 +58,7 @@ export default function Home() {
         });
         setChartState(chartsDatas);
         setHasProcessedData(true);
+        setFormState(formValues);
       }
     } else {
       if (
@@ -70,6 +73,7 @@ export default function Home() {
         });
         setChartState(chartsDatas);
         setHasProcessedData(true);
+        setFormState(formValues);
       }
     }
   }, [

@@ -23,6 +23,7 @@ interface BacktestFormProps {
 export const BacktestForm = ({ onSubmit }: BacktestFormProps) => {
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(backtestSchema),
+    shouldFocusError:true,
     defaultValues: {
       tickets: Array.from({ length: 5 }, () => ({
         ticket: "",

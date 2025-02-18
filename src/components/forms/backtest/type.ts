@@ -10,8 +10,29 @@ export const backtestSchema = z.object({
           fatal: true,
         });
       }
+
+      if (val === undefined || val === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Adicione um valor",
+          fatal: true,
+        });
+      }
     }),
-    monthlyInvestiment: z.string().optional(),
+    monthlyInvestiment: z
+      .string()
+      .optional()
+      .superRefine((val, ctx) => {
+        if (val) {
+          if (val.includes(".") || val.includes(",")) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Não coloque vírgulas e pontos!",
+              fatal: true,
+            });
+          }
+        }
+      }),
   }),
   period: z.object({
     from: z.object({
@@ -41,10 +62,16 @@ export const backtestSchema = z.object({
     .superRefine((val, ctx) => {
       const hasEmptyTicketsWithPercentage = val.some(
         (fields, idx) =>
-          (!fields.ticket.trim().length && fields.wallet1?.length) ||
-          (!fields.ticket.trim().length && fields.wallet2?.length) ||
-          (!fields.ticket.trim().length && fields.wallet3?.length)
+          (!fields.ticket.length && fields.wallet1?.length) ||
+          (!fields.ticket.length && fields.wallet2?.length) ||
+          (!fields.ticket.length && fields.wallet3?.length)
       );
+      // const hasEmptyPercentagesWithTickets = val.some(
+      //   (fields) =>
+      //     (fields.ticket.length && !fields.wallet1?.length) ||
+      //     (fields.ticket.length && !fields.wallet2?.length) ||
+      //     (fields.ticket.length && !fields.wallet3?.length)
+      // );
       const atLeastOneFilled = val.some(
         (ticket) => ticket.ticket.length && ticket.wallet1
       );
@@ -56,6 +83,14 @@ export const backtestSchema = z.object({
           fatal: true,
         });
       }
+
+      // if (hasEmptyPercentagesWithTickets) {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.not_finite,
+      //     message: "Adicione porcentagem na alocação",
+      //     fatal: true,
+      //   });
+      // }
 
       if (!atLeastOneFilled) {
         ctx.addIssue({

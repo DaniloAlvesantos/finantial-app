@@ -50,7 +50,7 @@ export function useIndexes({ indexes }: useIndexesProps) {
         fetchData<AlphaVantageResponse | govResponse[]>(indexOption.url),
       enabled: !!indexOption.url.length,
       retry: 3,
-      retryDelay: 1000,
+      retryDelay: 800,
     })),
   });
 
