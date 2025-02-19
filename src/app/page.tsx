@@ -3,7 +3,7 @@
 import { BacktestForm } from "@/components/forms";
 import { Header } from "@/components/header";
 import { SubmitHandler } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TicketFormValues } from "@/components/forms/backtest/type";
 import { Footer } from "@/components/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
@@ -17,71 +17,60 @@ import { useBackTestStore } from "@/stores/backTest";
 export default function Home() {
   const [chartState, setChartState] =
     useState<SubmitResultChartDataProps | null>(null);
-  const [tickets, setTickets] = useState<string[]>([]);
-  const [indexeState, setIndexeState] = useState<string[]>([]);
   const [formValues, setFormValues] = useState<TicketFormValues | null>(null);
-  const [hasProcessedData, setHasProcessedData] = useState(false);
+
+  const { setFormState, hasProcessedData, setHasProcessedData } =
+    useBackTestStore();
+
+  const tickets = useMemo(
+    () =>
+      formValues?.tickets.map((t) => t.ticket).filter((t) => t !== "") || [],
+    [formValues]
+  );
+
+  const indexeState = useMemo(
+    () =>
+      Object.entries(formValues?.config || {})
+        .filter(([key, value]) => value === true && key !== "PROCEEDS")
+        .map(([key]) => key),
+    [formValues]
+  );
+
   const stocks = useMultStocks(tickets);
   const indexes = useIndexes({ indexes: indexeState });
-  const { setFormState } = useBackTestStore();
 
-  const submit: SubmitHandler<TicketFormValues> = async (values) => {
-    setFormValues(values);
-    setHasProcessedData(false);
-
-    const ticketsVal = values.tickets
-      .map((ticket) => ticket.ticket)
-      .filter((ticket) => ticket !== "");
-
-    const indexesVal = Object.entries(values.config)
-      .filter((index) => index[1] === true && index[0] !== "PROCEEDS")
-      .map((index) => index[0]);
-
-    setTickets(ticketsVal);
-    setIndexeState(indexesVal);
-  };
+  const submit: SubmitHandler<TicketFormValues> = useCallback(
+    (values) => {
+      setFormValues(values);
+      setHasProcessedData(false);
+    },
+    [setHasProcessedData]
+  );
 
   useEffect(() => {
-    if (indexeState.length) {
-      if (
-        formValues &&
-        stocks.data.length > 0 &&
-        !stocks.isLoading &&
-        !hasProcessedData &&
-        indexes.data.length &&
-        !indexes.isLoading
-      ) {
-        const chartsDatas = submitChartData({
-          values: formValues,
-          stocks,
-          indexes,
-        });
-        setChartState(chartsDatas);
-        setHasProcessedData(true);
-        setFormState(formValues);
-      }
-    } else {
-      if (
-        formValues &&
-        stocks.data.length > 0 &&
-        !stocks.isLoading &&
-        !hasProcessedData
-      ) {
-        const chartsDatas = submitChartData({
-          values: formValues,
-          stocks,
-        });
-        setChartState(chartsDatas);
-        setHasProcessedData(true);
-        setFormState(formValues);
-      }
+    if (!formValues || hasProcessedData) return;
+
+    if (stocks.data.length > 0 && !stocks.isLoading) {
+      const chartsDatas = submitChartData({
+        values: formValues,
+        stocks,
+        indexes: indexeState.length > 0 ? indexes : undefined,
+      });
+
+      setChartState(chartsDatas);
+      setHasProcessedData(true);
+      setFormState(formValues);
     }
   }, [
+    formValues,
     stocks.data,
     stocks.isLoading,
-    hasProcessedData,
     indexes.data,
     indexes.isLoading,
+    hasProcessedData,
+    setHasProcessedData,
+    setFormState,
+    indexeState,
   ]);
 
   return (
@@ -91,7 +80,7 @@ export default function Home() {
         <BacktestForm onSubmit={submit} />
         <div className="w-full">
           {!chartState ? null : <BacktestCharts chartsDatas={chartState} />}
-          {stocks.isLoading && (
+          {stocks.isLoading && !hasProcessedData && (
             <div className="w-full flex items-center justify-center">
               <Spin />
             </div>

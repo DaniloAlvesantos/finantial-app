@@ -15,7 +15,7 @@ export const filterDataByPeriod = ({
 
   const fromDate = new Date(`${interval.from.year}-${interval.from.month}-01`);
   const toDate = new Date(`${interval.to.year}-${interval.to.month}-01`);
-  
+
   if (Array.isArray(data)) {
     const govData = data
       .filter((item) => item !== null && "data" in item)
@@ -27,21 +27,24 @@ export const filterDataByPeriod = ({
     return govData;
   }
 
-  const alphaPeriods = Object.keys(data)
-    .sort()
-    .map((date) => new Date(date))
-    .filter((date) => date >= fromDate && date <= toDate);
+  const alphaPeriods: Date[] = [];
+  const alphaValues: number[] = [];
+  const alphaDividends: number[] = [];
 
-  const alphaValues = Object.entries(data)
+  Object.entries(data)
     .sort()
-    .filter(([date]) => {
+    .forEach(([date, value]) => {
       const d = new Date(date);
-      return d >= fromDate && d <= toDate;
-    })
-    .map(([, value]) => Number(value["5. adjusted close"]));
+      if (d >= fromDate && d <= toDate) {
+        alphaPeriods.push(d);
+        alphaValues.push(Number(value["5. adjusted close"]));
+        alphaDividends.push(Number(value["7. dividend amount"]));
+      }
+    });
 
   return {
     periods: alphaPeriods,
     periodValues: alphaValues,
+    dividendsValues: alphaDividends,
   };
 };

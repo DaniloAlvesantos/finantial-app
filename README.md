@@ -1,25 +1,27 @@
 # Todo
 
-- [X] Make the submit function works with charts
-    - [X] Make the calc with the current values
-- [X] Separeble the percent of each ticket
-    - [X] Validate the percent ticket cannot be empty
-- [X] Mult queries stocks
-- [X] Fix the bottom chart tracker
-- [X] Redo the submit function.
-- [X] Form the right type of chartsDatas
-- [X] Compare the index with the wallets
-- [ ] Reinvest the divident/provents
-- [X] Make works the 3 wallets
-- [X] Remove title and subTitle from charts comp props
+- [x] Make the submit function works with charts
+  - [x] Make the calc with the current values
+- [x] Separeble the percent of each ticket
+  - [x] Validate the percent ticket cannot be empty
+- [x] Mult queries stocks
+- [x] Fix the bottom chart tracker
+- [x] Redo the submit function.
+- [x] Form the right type of chartsDatas
+- [x] Compare the index with the wallets
+- [x] Reinvest the divident/provents
+  - [x] Get the dividends amount from period interval
+  - [x] Add to calcs
+- [x] Make works the 3 wallets
+- [x] Remove title and subTitle from charts comp props
 - [ ] Toggle stocks
-- [ ] React Rewards
-    - [ ] Generate button to portifolio url
-    - [ ] Generate button portifolio pdf
-- [ ] Download zustand
+- [x] React Rewards
+  - [x] Generate button to portifolio url
+  - [x] Generate button portifolio pdf
+    - [ ] Make them work!
+- [x] Download zustand
 - [ ] Forms
-    - [ ] Scroll to error
-    - [ ] Vibrate on error
-- [ ] Create a README.md to docs the project 
+  - [x] Scroll to error
+- [ ] Create a README.md to docs the project
 - [ ] Fix the current currency
 - [ ] Improve design

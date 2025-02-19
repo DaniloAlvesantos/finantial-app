@@ -77,7 +77,6 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
           });
         }
       } else {
-        1;
         index.calcResults?.timeline.forEach((value, i) => {
           timelineData[i] = { ...timelineData[i], [index.name]: value.value };
           drawdownsData[i] = {

@@ -4,10 +4,14 @@ import { create } from "zustand";
 interface useBackTestStoreProps {
   formState: TicketFormValues | null;
   setFormState: (newState: TicketFormValues) => void;
+  hasProcessedData: boolean;
+  setHasProcessedData: (hasProcessedData: boolean) => void;
 }
 
 export const useBackTestStore = create<useBackTestStoreProps>((set) => ({
   formState: null,
   setFormState: (newFormState: TicketFormValues) =>
     set({ formState: newFormState }),
+  hasProcessedData: false,
+  setHasProcessedData: (hasProcessedData) => set({ hasProcessedData }),
 }));

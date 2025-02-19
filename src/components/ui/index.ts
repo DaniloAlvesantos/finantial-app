@@ -7,4 +7,5 @@ export * from "./label";
 export * as Select from "./select";
 export * as table from "./table";
 export * from "./checkbox";
-export * as Form from "./form"
+export * as Form from "./form";
+export * as Dialog from "./dialog";

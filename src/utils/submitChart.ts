@@ -70,7 +70,7 @@ const processTickets = ({
 
       if (!periodsRes || Array.isArray(periodsRes)) return;
 
-      const { periods, periodValues } = periodsRes;
+      const { periods, periodValues, dividendsValues } = periodsRes;
 
       const calcs = new Calcs();
       const calcRes = calcs.generalValues({
@@ -86,6 +86,7 @@ const processTickets = ({
             ? Number(values.budget.monthlyInvestiment) *
               (Number(ticket[walletKey as keyof ChartDatas]) / 100)
             : Number(values.budget.monthlyInvestiment),
+        dividendAmounts: values.config.PROCEEDS ? dividendsValues : undefined,
       });
 
       totals.push(calcRes);
@@ -183,6 +184,7 @@ export type TotalWalletsCalcProps = {
   cumulativeReturn: number;
   annualVolatility: number;
   maxDrawdown: number;
+  totalDividends: number;
 };
 
 export const submitChartData = ({
@@ -196,7 +198,6 @@ export const submitChartData = ({
     symbol: string;
     calcs: ReturnType<Calcs["generalValues"]>[];
   }[] = [];
-
   const {
     budget: { initialInvestiment, monthlyInvestiment },
     period,
@@ -225,12 +226,14 @@ export const submitChartData = ({
   }[] = [];
 
   totalWallets.forEach((wallet, i) => {
+    const currentWalletKey = `wallet${i + 1}` as keyof ChartDatas;
     const currentWallet: TotalWalletsCalcProps = {
       cagr: 0,
       totalInvested: 0,
       cumulativeReturn: 0,
       annualVolatility: 0,
       maxDrawdown: 0,
+      totalDividends: 0,
     };
 
     wallet.calcs.forEach((calc) => {
@@ -239,15 +242,19 @@ export const submitChartData = ({
       currentWallet.maxDrawdown += calc.maxDrawdown;
       currentWallet.totalInvested += calc.totalInvested;
       currentWallet.cumulativeReturn += calc.cumulativeReturn;
+      currentWallet.totalDividends += calc.totalDividends;
     });
 
     totalCalcs.push({
       symbol: wallet.symbol,
       values: {
         ...currentWallet,
-        maxDrawdown: Math.min(
-          ...chartsDatas[`wallet1`].drawdowns.map((d) => d.value)
-        ),
+        maxDrawdown:
+          chartsDatas[currentWalletKey] !== undefined
+            ? Math.min(
+                ...chartsDatas[currentWalletKey]?.drawdowns.map((d) => d.value)
+              )
+            : 0,
       },
     });
   });

@@ -42,7 +42,11 @@ export const BackTestTable = ({ tableData }: BacktestTableProps) => {
             <table.TableCell>
               {value.values.cumulativeReturn + "%"}
             </table.TableCell>
-            <table.TableCell></table.TableCell>
+            <table.TableCell>
+              {value.values.totalDividends > 0
+                ? currencyFormatter.format(value.values.totalDividends)
+                : null}
+            </table.TableCell>
             <table.TableCell>
               {value.values.annualVolatility + "%"}
             </table.TableCell>
