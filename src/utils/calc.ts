@@ -3,9 +3,10 @@ type TrendyProps = {
   currentValue: number;
 };
 
-type updateValueGeneral = TrendyProps & {
+type updateValueGeneralProps = TrendyProps & {
   monthlyInvest?: number;
   prevInvest: number;
+  dividend?: number;
 };
 
 type generalValuesProps = {
@@ -13,7 +14,8 @@ type generalValuesProps = {
   periodValues: number[];
   initialInvestiment: number;
   monthlyInvest?: number;
-  dividendAmounts?: number[];
+  sharesPrice?: number[];
+  dividends?: number[];
 };
 
 type extractAnnualReturnsProps = {
@@ -23,7 +25,7 @@ type extractAnnualReturnsProps = {
   }[];
 };
 
-type extractCAGRProps = {
+type extractCARGProps = {
   investmentValue: number;
   initialInvestiment: number;
   years: number;
@@ -31,56 +33,83 @@ type extractCAGRProps = {
 
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
-    if (previousValue === 0) return 0;
-    return ((currentValue - previousValue) / previousValue) * 100;
+    if (previousValue === 0) {
+      return 0; // Avoid division by zero
+    }
+    const percentageChange =
+      ((currentValue - previousValue) / previousValue) * 100;
+    return Number(percentageChange);
   }
 
-  updateGeneralValue({
+  updateValueGeneral({
     currentValue,
     prevInvest,
     previousValue,
     monthlyInvest = 0,
-  }: updateValueGeneral) {
+    dividend = 0, // Add dividend parameter
+  }: updateValueGeneralProps & { dividend?: number }) {
     const monthReturn = this.trendy({ previousValue, currentValue });
     const newInvestment = prevInvest + monthlyInvest;
-    return newInvestment * (1 + monthReturn / 100);
+
+    const additionalShares = dividend / currentValue;
+
+    const updatedInvestment =
+      (newInvestment + additionalShares * currentValue) *
+      (1 + monthReturn / 100);
+
+    return updatedInvestment;
   }
 
   extractAnnualReturns({ monthlyRetuns }: extractAnnualReturnsProps) {
-    if (!monthlyRetuns.length) return [];
+    if (!Array.isArray(monthlyRetuns) || monthlyRetuns.length === 0) {
+      return [];
+    }
 
-    const groupedByYear = monthlyRetuns.reduce((acc, { value, date }) => {
-      if (
-        !value ||
-        isNaN(value) ||
-        !(date instanceof Date) ||
-        isNaN(date.getTime())
-      )
-        return acc;
-      const year = date.getFullYear();
-      const monthlyReturn = value / 100;
+    const totalAnnual = monthlyRetuns
+      .filter((item) => item.value !== undefined && !isNaN(item.value))
+      .map((entry) => ({
+        value: entry.value,
+        period:
+          entry.date instanceof Date && !isNaN(entry.date.getTime())
+            ? entry.date
+            : null,
+      }))
+      .filter((entry) => entry.period !== null) as {
+      value: number;
+      period: Date;
+    }[];
+
+    const groupedByYear = totalAnnual.reduce((acc, entry) => {
+      if (!entry.period) return acc;
+      const year = entry.period.getFullYear();
+      const monthlyReturn = entry.value / 100;
+
       if (!acc[year]) acc[year] = [];
       acc[year].push(1 + monthlyReturn);
       return acc;
     }, {} as Record<number, number[]>);
 
-    return Object.keys(groupedByYear).map((year) => {
+    const annualReturns = Object.keys(groupedByYear).map((year) => {
       const product = groupedByYear[Number(year)].reduce(
         (acc, value) => acc * value,
         1
       );
+      const result = (product - 1) * 100;
+
       return {
         period: new Date(Number(year), 0, 1),
-        value: Number(((product - 1) * 100).toFixed(2)),
+        value: isNaN(result) ? 0 : Number(result.toFixed(2)),
       };
     });
+
+    return annualReturns;
   }
 
   extractCAGR({
     investmentValue,
     initialInvestiment,
     years,
-  }: extractCAGRProps) {
+  }: extractCARGProps) {
     return (
       (Math.pow(investmentValue / initialInvestiment, 1 / years) - 1) * 100
     );
@@ -91,53 +120,51 @@ export class Calcs {
     periodValues,
     periods,
     monthlyInvest,
-    dividendAmounts,
+    dividends = [],
   }: generalValuesProps) {
-    if (periodValues.length !== periods.length)
+    if (initialInvestiment <= 0) {
+      throw new Error("Initial investment must be greater than zero.");
+    }
+    if (periodValues.length !== periods.length) {
       throw new Error("Periods and periodValues must have the same length.");
-    if (dividendAmounts && dividendAmounts.length !== periodValues.length)
-      throw new Error("Dividends and periodValues must have the same length.");
-    if (!periods.every((p) => p instanceof Date && !isNaN(p.getTime())))
+    }
+    if (!periods.every((p) => p instanceof Date && !isNaN(p.getTime()))) {
       throw new Error("Invalid dates in periods array.");
+    }
     if (
       !periodValues.every((value) => typeof value === "number" && !isNaN(value))
-    )
+    ) {
       throw new Error("Invalid values in periodValues array.");
-
-    let investmentValue = initialInvestiment;
-    let maxValue = initialInvestiment;
-    let maxDrawdows = 0;
-    let sharesHeld = initialInvestiment / periodValues[0];
-    let totalDividends = 0;
+    }
 
     const timeline = [{ value: initialInvestiment, date: periods[0] }];
     const drawdowns = [{ value: 0, date: periods[0] }];
     const percentReturns = [{ value: 0, date: periods[0] }];
+    let investmentValue = initialInvestiment;
+    let maxValue = initialInvestiment;
+    let maxDrawdowns = 0;
+    let totalShares = initialInvestiment / periodValues[0];
+    let totalDividends = 0;
 
     for (let i = 1; i < periods.length; i++) {
       const currentValue = periodValues[i];
       const previousValue = periodValues[i - 1];
-      const dividendPerShare = dividendAmounts ? dividendAmounts[i] || 0 : 0;
-      const dividendsReceived =
-        dividendPerShare > 0 ? sharesHeld * dividendPerShare : 0;
+      const dividend = dividends[i] || 0;
 
-      const additionalShares = dividendsReceived / currentValue;
-      sharesHeld += additionalShares;
-      totalDividends += dividendsReceived;
-
-      investmentValue = sharesHeld * currentValue;
+      const additionalShares = dividend / currentValue;
+      totalShares += additionalShares;
+      totalDividends += dividend * totalShares;
+      investmentValue = totalShares * currentValue;
 
       timeline.push({ value: investmentValue, date: periods[i] });
-      percentReturns.push({
-        value: this.trendy({ currentValue, previousValue }),
-        date: periods[i],
-      });
+      const currentPeriodTrendy = this.trendy({ currentValue, previousValue });
+      percentReturns.push({ value: currentPeriodTrendy, date: periods[i] });
 
       maxValue = Math.max(maxValue, investmentValue);
       const currentDrawdown =
         maxValue !== 0 ? (maxValue - investmentValue) / maxValue : 0;
       drawdowns.push({ value: currentDrawdown, date: periods[i] });
-      maxDrawdows = Math.max(maxDrawdows, currentDrawdown);
+      maxDrawdowns = Math.max(maxDrawdowns, currentDrawdown);
     }
 
     const cumulativeReturn =
@@ -150,26 +177,31 @@ export class Calcs {
         ? this.extractCAGR({ years, initialInvestiment, investmentValue })
         : 0;
     const avgReturn =
-      percentReturns.reduce((a, b) => a + b.value, 0) / percentReturns.length;
+      percentReturns.length > 0
+        ? percentReturns.reduce((a, b) => a + b.value, 0) /
+          percentReturns.length
+        : 0;
     const variance =
-      percentReturns.reduce(
-        (sum, r) => sum + Math.pow(r.value - avgReturn, 2),
-        0
-      ) /
-      (percentReturns.length - 1);
+      percentReturns.length > 1
+        ? percentReturns.reduce(
+            (sum, r) => sum + Math.pow(r.value - avgReturn, 2),
+            0
+          ) /
+          (percentReturns.length - 1)
+        : 0;
     const annualVolatility = Math.sqrt(variance) * Math.sqrt(12);
     const annualReturns = this.extractAnnualReturns({
       monthlyRetuns: percentReturns,
     });
 
-    const totalInvested = monthlyInvest
+    let totalInvested = monthlyInvest
       ? periods.length * monthlyInvest + initialInvestiment
       : initialInvestiment;
 
     return {
       timeline,
       cumulativeReturn: Number(cumulativeReturn.toFixed(2)),
-      maxDrawdown: Number((maxDrawdows * 100).toFixed(2)) * -1,
+      maxDrawdown: Number((maxDrawdowns * 100).toFixed(2)) * -1,
       drawdowns: drawdowns.map((d) => ({
         ...d,
         value: Number((d.value * 100).toFixed(2)),
@@ -184,6 +216,7 @@ export class Calcs {
       periods,
       totalInvested,
       totalDividends: Number(totalDividends.toFixed(2)),
+      totalShares: Math.round(totalShares),
     };
   }
 }

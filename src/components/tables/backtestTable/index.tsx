@@ -16,6 +16,7 @@ const TableHeader = () => {
         <table.TableHead>
           Total em <br /> proventos
         </table.TableHead>
+        <table.TableHead>Total de ações</table.TableHead>
         <table.TableHead>
           Volatilidade <br /> anual
         </table.TableHead>
@@ -47,6 +48,7 @@ export const BackTestTable = ({ tableData }: BacktestTableProps) => {
                 ? currencyFormatter.format(value.values.totalDividends)
                 : null}
             </table.TableCell>
+            <table.TableCell>{value.values.totalShares}</table.TableCell>
             <table.TableCell>
               {value.values.annualVolatility + "%"}
             </table.TableCell>

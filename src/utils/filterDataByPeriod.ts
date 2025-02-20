@@ -30,6 +30,7 @@ export const filterDataByPeriod = ({
   const alphaPeriods: Date[] = [];
   const alphaValues: number[] = [];
   const alphaDividends: number[] = [];
+  const alphaSharesPricing: number[] = [];
 
   Object.entries(data)
     .sort()
@@ -39,6 +40,7 @@ export const filterDataByPeriod = ({
         alphaPeriods.push(d);
         alphaValues.push(Number(value["5. adjusted close"]));
         alphaDividends.push(Number(value["7. dividend amount"]));
+        alphaSharesPricing.push(Number(value["4. close"]));
       }
     });
 
@@ -46,5 +48,6 @@ export const filterDataByPeriod = ({
     periods: alphaPeriods,
     periodValues: alphaValues,
     dividendsValues: alphaDividends,
+    sharesPrice: alphaSharesPricing
   };
 };

@@ -70,7 +70,8 @@ const processTickets = ({
 
       if (!periodsRes || Array.isArray(periodsRes)) return;
 
-      const { periods, periodValues, dividendsValues } = periodsRes;
+      const { periods, periodValues, dividendsValues, sharesPrice } =
+        periodsRes;
 
       const calcs = new Calcs();
       const calcRes = calcs.generalValues({
@@ -86,7 +87,8 @@ const processTickets = ({
             ? Number(values.budget.monthlyInvestiment) *
               (Number(ticket[walletKey as keyof ChartDatas]) / 100)
             : Number(values.budget.monthlyInvestiment),
-        dividendAmounts: values.config.PROCEEDS ? dividendsValues : undefined,
+        dividends: values.config.PROCEEDS ? dividendsValues : undefined,
+        sharesPrice: values.config.PROCEEDS ? sharesPrice : undefined,
       });
 
       totals.push(calcRes);
@@ -185,6 +187,7 @@ export type TotalWalletsCalcProps = {
   annualVolatility: number;
   maxDrawdown: number;
   totalDividends: number;
+  totalShares: number;
 };
 
 export const submitChartData = ({
@@ -234,6 +237,7 @@ export const submitChartData = ({
       annualVolatility: 0,
       maxDrawdown: 0,
       totalDividends: 0,
+      totalShares: 0,
     };
 
     wallet.calcs.forEach((calc) => {
@@ -243,6 +247,7 @@ export const submitChartData = ({
       currentWallet.totalInvested += calc.totalInvested;
       currentWallet.cumulativeReturn += calc.cumulativeReturn;
       currentWallet.totalDividends += calc.totalDividends;
+      currentWallet.totalShares += calc.totalShares;
     });
 
     totalCalcs.push({

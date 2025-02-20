@@ -17,23 +17,21 @@ import { useBackTestStore } from "@/stores/backTest";
 export default function Home() {
   const [chartState, setChartState] =
     useState<SubmitResultChartDataProps | null>(null);
-  const [formValues, setFormValues] = useState<TicketFormValues | null>(null);
 
-  const { setFormState, hasProcessedData, setHasProcessedData } =
+  const { formState, setFormState, hasProcessedData, setHasProcessedData } =
     useBackTestStore();
 
   const tickets = useMemo(
-    () =>
-      formValues?.tickets.map((t) => t.ticket).filter((t) => t !== "") || [],
-    [formValues]
+    () => formState?.tickets.map((t) => t.ticket).filter((t) => t !== "") || [],
+    [formState]
   );
 
   const indexeState = useMemo(
     () =>
-      Object.entries(formValues?.config || {})
+      Object.entries(formState?.config || {})
         .filter(([key, value]) => value === true && key !== "PROCEEDS")
         .map(([key]) => key),
-    [formValues]
+    [formState]
   );
 
   const stocks = useMultStocks(tickets);
@@ -41,35 +39,33 @@ export default function Home() {
 
   const submit: SubmitHandler<TicketFormValues> = useCallback(
     (values) => {
-      setFormValues(values);
+      setFormState(values);
       setHasProcessedData(false);
     },
-    [setHasProcessedData]
+    [setHasProcessedData, setFormState]
   );
 
   useEffect(() => {
-    if (!formValues || hasProcessedData) return;
+    if (!formState || hasProcessedData) return;
 
     if (stocks.data.length > 0 && !stocks.isLoading) {
       const chartsDatas = submitChartData({
-        values: formValues,
+        values: formState,
         stocks,
         indexes: indexeState.length > 0 ? indexes : undefined,
       });
 
       setChartState(chartsDatas);
       setHasProcessedData(true);
-      setFormState(formValues);
     }
   }, [
-    formValues,
+    formState,
     stocks.data,
     stocks.isLoading,
     indexes.data,
     indexes.isLoading,
     hasProcessedData,
     setHasProcessedData,
-    setFormState,
     indexeState,
   ]);
 
