@@ -271,8 +271,8 @@ export const submitChartData = ({
       currentWallet.cumulativeReturn += calc.cumulativeReturn;
       currentWallet.totalDividends += calc.totalDividends;
       currentWallet.totalShares += calc.totalShares;
-      currentWallet.bestYear = bestYear;
-      currentWallet.worstYear = worstYear;
+      currentWallet.bestYear = Number(bestYear);
+      currentWallet.worstYear = Number(worstYear);
     });
 
     totalCalcs.push({

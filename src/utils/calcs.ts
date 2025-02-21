@@ -240,6 +240,13 @@ export class Calcs {
 
     const ratios = this.extractRatios({ percentReturns });
 
+    const bestYear: number = Number(
+      Math.max(...annualReturns.map((val) => val.value)).toFixed(2)
+    );
+    const worstYear = Number(
+      Math.min(...annualReturns.map((val) => val.value)).toFixed(2)
+    );
+
     return {
       timeline,
       cumulativeReturn: Number(cumulativeReturn.toFixed(2)),
@@ -259,6 +266,8 @@ export class Calcs {
       totalInvested,
       totalDividends: Number(totalDividends.toFixed(2)),
       totalShares: Math.round(totalShares),
+      bestYear,
+      worstYear,
     };
   }
 }
