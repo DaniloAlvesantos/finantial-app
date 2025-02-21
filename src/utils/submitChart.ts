@@ -1,6 +1,6 @@
 import { ChartDatas } from "@/types/chartsDatas";
 import { TicketFormValues } from "@/components/forms/backtest/type";
-import { Calcs } from "./calc";
+import { Calcs } from "./calcs";
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { UseQueryResult } from "@tanstack/react-query";
 import { AxiosResponse } from "axios";
@@ -119,22 +119,25 @@ const aggregateChartData = ({
 }: AggregateChartDataProps) => {
   const totalTimeline: number[] = [];
   const totalDrawdowns: number[] = [];
-  const totalMonthlyReturns: number[] = [];
+  const totalAnnualReturns: number[] = [];
   const currentWallet = walletKey as keyof ChartDatas;
 
   totals.forEach((total, idx) => {
     total.timeline.forEach((_, i) => {
       if (!totalTimeline[i]) totalTimeline[i] = 0;
       if (!totalDrawdowns[i]) totalDrawdowns[i] = 0;
-      if (!totalMonthlyReturns[i]) totalMonthlyReturns[i] = 0;
 
       totalTimeline[i] += Number(total.timeline[i].value);
+    });
+
+    total.annualReturns.forEach((_, i) => {
+      if (!totalAnnualReturns[i]) totalAnnualReturns[i] = 0;
 
       Number(values.tickets[idx][currentWallet]) !== 0
-        ? (totalMonthlyReturns[i] +=
-            Number(total.monthlyRetuns[i].value) *
+        ? (totalAnnualReturns[i] +=
+            Number(total.annualReturns[i].value) *
             (Number(values.tickets[idx][currentWallet]) / 100))
-        : (totalMonthlyReturns[i] += Number(total.monthlyRetuns[i].value));
+        : (totalAnnualReturns[i] += Number(total.annualReturns[i].value));
     });
   });
 
@@ -150,17 +153,17 @@ const aggregateChartData = ({
     });
 
     chartsDatas[currentWallet]?.drawdowns.push({
-      value: totalDrawdowns[i] * 100, // Convert to percentage
+      value: totalDrawdowns[i] * 100,
       period: String(totals[0].periods[i]),
     });
   });
 
   totals[
     Number(currentWallet.charAt(currentWallet.length))
-  ].annualReturns.forEach((val) => {
+  ].annualReturns.forEach((val, i) => {
     chartsDatas[currentWallet]?.monthlyReturns.push({
       period: String(val.period),
-      value: val.value,
+      value: totalAnnualReturns[i],
     });
   });
 };
@@ -188,6 +191,8 @@ export type TotalWalletsCalcProps = {
   maxDrawdown: number;
   totalDividends: number;
   totalShares: number;
+  bestYear: number;
+  worstYear: number;
 };
 
 export const submitChartData = ({
@@ -228,8 +233,8 @@ export const submitChartData = ({
     values: TotalWalletsCalcProps;
   }[] = [];
 
-  totalWallets.forEach((wallet, i) => {
-    const currentWalletKey = `wallet${i + 1}` as keyof ChartDatas;
+  totalWallets.forEach((wallet, idx) => {
+    const currentWalletKey = `wallet${idx + 1}` as keyof ChartDatas;
     const currentWallet: TotalWalletsCalcProps = {
       cagr: 0,
       totalInvested: 0,
@@ -238,9 +243,27 @@ export const submitChartData = ({
       maxDrawdown: 0,
       totalDividends: 0,
       totalShares: 0,
+      bestYear: 0,
+      worstYear: 0,
     };
 
-    wallet.calcs.forEach((calc) => {
+    const bestYear = chartsDatas[currentWalletKey]
+      ? Math.max(
+          ...chartsDatas[currentWalletKey].monthlyReturns.map(
+            (val) => val.value
+          )
+        )
+      : 0;
+
+    const worstYear = chartsDatas[currentWalletKey]
+      ? Math.min(
+          ...chartsDatas[currentWalletKey].monthlyReturns.map(
+            (val) => val.value
+          )
+        )
+      : 0;
+
+    wallet.calcs.forEach((calc, i) => {
       currentWallet.cagr += calc.cagr;
       currentWallet.annualVolatility += calc.annualVolatility;
       currentWallet.maxDrawdown += calc.maxDrawdown;
@@ -248,6 +271,8 @@ export const submitChartData = ({
       currentWallet.cumulativeReturn += calc.cumulativeReturn;
       currentWallet.totalDividends += calc.totalDividends;
       currentWallet.totalShares += calc.totalShares;
+      currentWallet.bestYear = bestYear;
+      currentWallet.worstYear = worstYear;
     });
 
     totalCalcs.push({

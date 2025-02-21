@@ -1,6 +1,6 @@
 import { AlphaVantageResponse, PeriodKeys } from "@/types/alphaVantageResponse";
 import { govResponse } from "@/types/govResponse";
-import { Calcs } from "./calc";
+import { Calcs } from "./calcs";
 import { TicketFormValues } from "@/components/forms/backtest/type";
 
 interface IndexesProps {

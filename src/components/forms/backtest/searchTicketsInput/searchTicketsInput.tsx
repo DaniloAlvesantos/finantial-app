@@ -35,11 +35,11 @@ export const DataListTicket = ({ value }: { value: string }) => {
   const { data, isLoading, error, isError } = useTickets(value);
 
   if (isError) {
-    console.log(error)
+    console.log(error);
     return;
   }
 
-  if(!data) {
+  if (!data || data === undefined || !data.bestMatches) {
     return;
   }
 
@@ -48,7 +48,7 @@ export const DataListTicket = ({ value }: { value: string }) => {
       {isLoading ? (
         <option>Carregando...</option>
       ) : (
-        data.bestMatches.slice(-6).map((value, idx) => (
+        data.bestMatches.map((value, idx) => (
           <option key={idx} value={value["1. symbol"]}>
             {value["2. name"]}
           </option>

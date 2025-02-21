@@ -1,35 +1,13 @@
-type TrendyProps = {
-  previousValue: number;
-  currentValue: number;
-};
-
-type updateValueGeneralProps = TrendyProps & {
-  monthlyInvest?: number;
-  prevInvest: number;
-  dividend?: number;
-};
-
-type generalValuesProps = {
-  periods: Date[];
-  periodValues: number[];
-  initialInvestiment: number;
-  monthlyInvest?: number;
-  sharesPrice?: number[];
-  dividends?: number[];
-};
-
-type extractAnnualReturnsProps = {
-  monthlyRetuns: {
-    value: number;
-    date: Date;
-  }[];
-};
-
-type extractCARGProps = {
-  investmentValue: number;
-  initialInvestiment: number;
-  years: number;
-};
+import {
+  extractAnnualReturnsProps,
+  extractCARGProps,
+  extractCumulativeReturnsProps,
+  extractRatiosProps,
+  extractYearsProps,
+  generalValuesProps,
+  TrendyProps,
+  updateValueGeneralProps,
+} from "@/types/calcsProps";
 
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
@@ -115,6 +93,60 @@ export class Calcs {
     );
   }
 
+  extractCumulativeReturns({
+    initialInvestiment,
+    investmentValue,
+  }: extractCumulativeReturnsProps) {
+    return ((investmentValue - initialInvestiment) / initialInvestiment) * 100;
+  }
+
+  extractYears({ firstPeriod, lastPeriod }: extractYearsProps) {
+    return (
+      (lastPeriod.getTime() - firstPeriod.getTime()) /
+      (1000 * 60 * 60 * 24 * 365.25)
+    );
+  }
+
+  extractRatios({ percentReturns }: extractRatiosProps) {
+    if (percentReturns.length === 0) {
+      return {
+        sharpeRatio: 0,
+        sortinoRatio: 0,
+      };
+    }
+
+    const riskFreeRate = 0.1325 / 12;
+    const excessReturns = percentReturns.map((r) => r.value - riskFreeRate);
+    const downsideReturns = excessReturns.filter((r) => r < 0);
+
+    const standardDeviation =
+      Math.sqrt(
+        excessReturns.reduce((sum, r) => sum + r ** 2, 0) /
+          (excessReturns.length - 1 || 1)
+      ) || 1;
+
+    const downsideDeviation =
+      Math.sqrt(
+        downsideReturns.reduce((sum, r) => sum + r ** 2, 0) /
+          (downsideReturns.length - 1 || 1)
+      ) || 1;
+
+    const sharpeRatio =
+      excessReturns.reduce((sum, r) => sum + r, 0) /
+      (excessReturns.length || 1) /
+      standardDeviation;
+
+    const sortinoRatio =
+      excessReturns.reduce((sum, r) => sum + r, 0) /
+      (excessReturns.length || 1) /
+      downsideDeviation;
+
+    return {
+      sharpeRatio,
+      sortinoRatio,
+    };
+  }
+
   generalValues({
     initialInvestiment,
     periodValues,
@@ -153,7 +185,7 @@ export class Calcs {
 
       const additionalShares = dividend / currentValue;
       totalShares += additionalShares;
-      totalDividends += dividend * totalShares;
+      totalDividends += dividend;
       investmentValue = totalShares * currentValue;
 
       timeline.push({ value: investmentValue, date: periods[i] });
@@ -167,20 +199,27 @@ export class Calcs {
       maxDrawdowns = Math.max(maxDrawdowns, currentDrawdown);
     }
 
-    const cumulativeReturn =
-      ((investmentValue - initialInvestiment) / initialInvestiment) * 100;
-    const years =
-      (periods[periods.length - 1].getTime() - periods[0].getTime()) /
-      (1000 * 60 * 60 * 24 * 365.25);
+    const cumulativeReturn = this.extractCumulativeReturns({
+      initialInvestiment,
+      investmentValue,
+    });
+
+    const years = this.extractYears({
+      lastPeriod: periods[periods.length - 1],
+      firstPeriod: periods[0],
+    });
+
     const cagr =
       years > 0
         ? this.extractCAGR({ years, initialInvestiment, investmentValue })
         : 0;
+
     const avgReturn =
       percentReturns.length > 0
         ? percentReturns.reduce((a, b) => a + b.value, 0) /
           percentReturns.length
         : 0;
+
     const variance =
       percentReturns.length > 1
         ? percentReturns.reduce(
@@ -189,6 +228,7 @@ export class Calcs {
           ) /
           (percentReturns.length - 1)
         : 0;
+
     const annualVolatility = Math.sqrt(variance) * Math.sqrt(12);
     const annualReturns = this.extractAnnualReturns({
       monthlyRetuns: percentReturns,
@@ -197,6 +237,8 @@ export class Calcs {
     let totalInvested = monthlyInvest
       ? periods.length * monthlyInvest + initialInvestiment
       : initialInvestiment;
+
+    const ratios = this.extractRatios({ percentReturns });
 
     return {
       timeline,
