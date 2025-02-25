@@ -26,12 +26,14 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
 
   const timelineData: Record<string, any>[] = [];
   const drawdownsData: Record<string, any>[] = [];
+  const monthlyRetunsData: Record<string, any>[] = [];
   const annualReturnsData: Record<string, any>[] = [];
   const totalCalcsData: {
     symbol: string;
     values: TotalWalletsCalcProps;
   }[] = [];
 
+  // Formating timeline, drawdown, monthlyReturns
   chartsDatas.wallet1.timeline.forEach((_, idx) => {
     const timelineEntry: Record<string, any> = {
       period: chartsDatas.wallet1.timeline[idx].period,
@@ -40,25 +42,33 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
       period: chartsDatas.wallet1.drawdowns[idx].period,
     };
 
+    const monthlyReturnsEntry: Record<string, any> = {
+      period: chartsDatas.wallet1.monthlyReturns[idx].period,
+    };
+
     wallets.forEach((wallet, wIndex) => {
       timelineEntry[`item${wIndex + 1}`] =
         chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value;
       drawdownsEntry[`item${wIndex + 1}`] =
         chartsDatas[wallet as keyof ChartDatas]?.drawdowns[idx].value;
+      monthlyReturnsEntry[`Carteira-${wIndex + 1}`] =
+        chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value;
     });
 
     timelineData.push(timelineEntry);
     drawdownsData.push(drawdownsEntry);
+    monthlyRetunsData.push(monthlyReturnsEntry);
   });
 
-  chartsDatas.wallet1.monthlyReturns.forEach((_, idx) => {
+  // Formating annualReturns
+  chartsDatas.wallet1.annulReturns.forEach((_, idx) => {
     const annualReturnsEntry: Record<string, any> = {
-      period: chartsDatas.wallet1.monthlyReturns[idx].period,
+      period: chartsDatas.wallet1.annulReturns[idx].period,
     };
 
     wallets.forEach((wallet, wIndex) => {
       annualReturnsEntry[`item${wIndex + 1}`] =
-        chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value;
+        chartsDatas[wallet as keyof ChartDatas]?.annulReturns[idx].value;
     });
 
     annualReturnsData.push(annualReturnsEntry);
@@ -70,6 +80,10 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
         if (timelineData.length === index.results.periodValues.length) {
           index.results.periodValues.forEach((value, i) => {
             timelineData[i] = { ...timelineData[i], [index.name]: value };
+            monthlyRetunsData[i] = {
+              ...monthlyRetunsData[i],
+              [index.name]: value,
+            };
           });
           totalCalcsData.push({
             symbol: index.name,
@@ -82,6 +96,10 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
           drawdownsData[i] = {
             ...drawdownsData[i],
             [index.name]: -Number(index.calcResults?.drawdowns[i].value),
+          };
+          monthlyRetunsData[i] = {
+            ...monthlyRetunsData[i],
+            [index.name]: value,
           };
         });
 
@@ -107,5 +125,6 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
     drawdownsData,
     annualReturnsData,
     totalCalcsData,
+    monthlyRetunsData,
   };
 };

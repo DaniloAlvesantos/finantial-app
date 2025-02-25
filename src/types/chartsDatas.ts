@@ -10,6 +10,7 @@ type Wallet = {
   timeline: DefaultValues[];
   drawdowns: DefaultValues[];
   monthlyReturns: DefaultValues[];
+  annulReturns: DefaultValues[];
   tickersPercentage: {
     ticker: string;
     percentage: number;

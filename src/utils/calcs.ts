@@ -1,6 +1,6 @@
 import {
   extractAnnualReturnsProps,
-  extractCARGProps,
+  extractCAGRProps,
   extractCumulativeReturnsProps,
   extractRatiosProps,
   extractYearsProps,
@@ -8,8 +8,11 @@ import {
   TrendyProps,
   updateValueGeneralProps,
 } from "@/types/calcsProps";
+import { Metrics } from "./metrics";
 
 export class Calcs {
+  // private metrics: Metrics;
+
   trendy({ previousValue, currentValue }: TrendyProps): number {
     if (previousValue === 0) {
       return 0; // Avoid division by zero
@@ -87,7 +90,7 @@ export class Calcs {
     investmentValue,
     initialInvestiment,
     years,
-  }: extractCARGProps) {
+  }: extractCAGRProps) {
     return (
       (Math.pow(investmentValue / initialInvestiment, 1 / years) - 1) * 100
     );

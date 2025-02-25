@@ -35,6 +35,7 @@ const initializeChartData = (walletKeys: Array<string>): ChartDatas => {
       drawdowns: [],
       monthlyReturns: [],
       tickersPercentage: [],
+      annulReturns: [],
     };
   });
 
@@ -117,17 +118,20 @@ const aggregateChartData = ({
   walletKey,
   values,
 }: AggregateChartDataProps) => {
+  const currentWallet = walletKey as keyof ChartDatas;
   const totalTimeline: number[] = [];
   const totalDrawdowns: number[] = [];
   const totalAnnualReturns: number[] = [];
-  const currentWallet = walletKey as keyof ChartDatas;
+  const totalMonthlyReturns: number[] = [];
 
   totals.forEach((total, idx) => {
     total.timeline.forEach((_, i) => {
       if (!totalTimeline[i]) totalTimeline[i] = 0;
       if (!totalDrawdowns[i]) totalDrawdowns[i] = 0;
+      if (!totalMonthlyReturns[i]) totalMonthlyReturns[i] = 0;
 
       totalTimeline[i] += Number(total.timeline[i].value);
+      totalMonthlyReturns[i] += Number(total.monthlyRetuns[i].value);
     });
 
     total.annualReturns.forEach((_, i) => {
@@ -144,24 +148,31 @@ const aggregateChartData = ({
   let peak = -Infinity;
 
   totalTimeline.forEach((value, i) => {
+    const currentDate = String(totals[0].periods[i]);
+
     if (value > peak) peak = value;
     totalDrawdowns[i] = (value - peak) / peak;
 
     chartsDatas[currentWallet]?.timeline.push({
       value,
-      period: String(totals[0].periods[i]),
+      period: currentDate,
     });
 
     chartsDatas[currentWallet]?.drawdowns.push({
       value: totalDrawdowns[i] * 100,
-      period: String(totals[0].periods[i]),
+      period: currentDate,
+    });
+
+    chartsDatas[currentWallet]?.monthlyReturns.push({
+      value: totalMonthlyReturns[i],
+      period: currentDate,
     });
   });
 
   totals[
     Number(currentWallet.charAt(currentWallet.length))
   ].annualReturns.forEach((val, i) => {
-    chartsDatas[currentWallet]?.monthlyReturns.push({
+    chartsDatas[currentWallet]?.annulReturns.push({
       period: String(val.period),
       value: totalAnnualReturns[i],
     });
@@ -249,30 +260,32 @@ export const submitChartData = ({
 
     const bestYear = chartsDatas[currentWalletKey]
       ? Math.max(
-          ...chartsDatas[currentWalletKey].monthlyReturns.map(
-            (val) => val.value
-          )
+          ...chartsDatas[currentWalletKey].annulReturns.map((val) => val.value)
         )
       : 0;
 
     const worstYear = chartsDatas[currentWalletKey]
       ? Math.min(
-          ...chartsDatas[currentWalletKey].monthlyReturns.map(
-            (val) => val.value
-          )
+          ...chartsDatas[currentWalletKey].annulReturns.map((val) => val.value)
         )
       : 0;
 
+    currentWallet.bestYear = Number(bestYear);
+    currentWallet.worstYear = Number(worstYear);
+
     wallet.calcs.forEach((calc, i) => {
+      const cumulated =
+        values.tickets.length > 1
+          ? calc.cumulativeReturn *
+            (Number(values.tickets[i][currentWalletKey]) / 100)
+          : calc.cumulativeReturn;
       currentWallet.cagr += calc.cagr;
       currentWallet.annualVolatility += calc.annualVolatility;
       currentWallet.maxDrawdown += calc.maxDrawdown;
       currentWallet.totalInvested += calc.totalInvested;
-      currentWallet.cumulativeReturn += calc.cumulativeReturn;
+      currentWallet.cumulativeReturn += cumulated;
       currentWallet.totalDividends += calc.totalDividends;
       currentWallet.totalShares += calc.totalShares;
-      currentWallet.bestYear = Number(bestYear);
-      currentWallet.worstYear = Number(worstYear);
     });
 
     totalCalcs.push({

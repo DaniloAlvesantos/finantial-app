@@ -25,7 +25,7 @@ export type extractAnnualReturnsProps = {
   }[];
 };
 
-export type extractCARGProps = {
+export type extractCAGRProps = {
   investmentValue: number;
   initialInvestiment: number;
   years: number;

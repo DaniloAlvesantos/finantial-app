@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  table,
-} from "@/components/ui";
+import { table } from "@/components/ui";
 import { BacktestTableProps } from "./props";
 import { currencyFormatter } from "@/lib/currencyFormatter";
-import { ReactNode } from "react";
+import { CardContainer } from "@/components/cards/CardContainer";
 
 const TableHeader = () => {
   return (
@@ -45,22 +39,9 @@ const TableHeader = () => {
   );
 };
 
-const BackTestContainerTable = ({ children }: { children: ReactNode }) => {
+export const SummaryTable = ({ tableData }: BacktestTableProps) => {
   return (
-    <Card className="my-4">
-      <CardHeader className="py-4 -mb-4">
-        <CardTitle className="font-poppins font-bold text-lg">
-          Resumo Perfomace
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  );
-};
-
-export const BackTestTable = ({ tableData }: BacktestTableProps) => {
-  return (
-    <BackTestContainerTable>
+    <CardContainer title="Resumo Perfomace">
       <table.Table>
         <TableHeader />
         <table.TableBody className="font-montserrat font-medium">
@@ -103,6 +84,6 @@ export const BackTestTable = ({ tableData }: BacktestTableProps) => {
           ))}
         </table.TableBody>
       </table.Table>
-    </BackTestContainerTable>
+    </CardContainer>
   );
 };

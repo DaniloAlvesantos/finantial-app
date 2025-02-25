@@ -1,5 +1,7 @@
 "use client";
 
+/* Fix when add index, to click once to update it */
+
 import { BacktestForm } from "@/components/forms";
 import { Header } from "@/components/header";
 import { SubmitHandler } from "react-hook-form";
