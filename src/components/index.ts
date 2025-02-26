@@ -4,4 +4,8 @@ export * from "./forms";
 export * from "./header";
 export * from "./loading/spin/spin";
 export * from "./tables/summaryTable";
+export * from "./tables/monthlyReturnsTable";
+export * from "./buttons/shareBacktest";
+export * from "./cards/BackTestReults";
+export * from "./cards/CardContainer";
 export * from "./ui";

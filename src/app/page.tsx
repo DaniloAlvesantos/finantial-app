@@ -1,74 +1,96 @@
 "use client";
 
-/* Fix when add index, to click once to update it */
-
-import { BacktestForm } from "@/components/forms";
-import { Header } from "@/components/header";
+import { useEffect, useState } from "react";
 import { SubmitHandler } from "react-hook-form";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { TicketFormValues } from "@/components/forms/backtest/type";
-import { Footer } from "@/components/footer/footer";
 import { useMultStocks } from "@/hooks/useMultStocks";
-import { BacktestCharts } from "@/components/charts/__backtestCharts";
-import { submitChartData } from "@/utils/submitChart";
-import { Spin } from "@/components/loading/spin/spin";
-import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 import { useIndexes } from "@/hooks/useIndexes";
 import { useBackTestStore } from "@/stores/backTest";
+
+import {
+  Header,
+  Footer,
+  BacktestCharts,
+  Spin,
+  BacktestForm,
+} from "@/components";
+
+import { TicketFormValues } from "@/components/forms/backtest/type";
+import { submitChartData } from "@/utils/submitChart";
+import { SubmitResultChartDataProps } from "@/types/chartsDatas";
 
 export default function Home() {
   const [chartState, setChartState] =
     useState<SubmitResultChartDataProps | null>(null);
 
-  const { formState, setFormState, hasProcessedData, setHasProcessedData } =
-    useBackTestStore();
-
-  const tickets = useMemo(
-    () => formState?.tickets.map((t) => t.ticket).filter((t) => t !== "") || [],
-    [formState]
-  );
-
-  const indexeState = useMemo(
-    () =>
-      Object.entries(formState?.config || {})
-        .filter(([key, value]) => value === true && key !== "PROCEEDS")
-        .map(([key]) => key),
-    [formState]
-  );
+  const {
+    formState,
+    setFormState,
+    hasProcessedData,
+    setHasProcessedData,
+    indexeState,
+    setIndexeState,
+    setTickets,
+    tickets,
+  } = useBackTestStore();
 
   const stocks = useMultStocks(tickets);
   const indexes = useIndexes({ indexes: indexeState });
 
-  const submit: SubmitHandler<TicketFormValues> = useCallback(
-    (values) => {
-      setFormState(values);
-      setHasProcessedData(false);
-    },
-    [setHasProcessedData, setFormState]
-  );
+  const submit: SubmitHandler<TicketFormValues> = async (values) => {
+    setFormState(values);
+    setHasProcessedData(false);
+
+    const ticketsVal = values.tickets
+      .map((ticket) => ticket.ticket)
+      .filter((ticket) => ticket !== "");
+
+    const indexesVal = Object.entries(values.config)
+      .filter((index) => index[1] === true && index[0] !== "PROCEEDS")
+      .map((index) => index[0]);
+
+    setTickets(ticketsVal);
+    setIndexeState(indexesVal);
+  };
 
   useEffect(() => {
-    if (!formState || hasProcessedData) return;
-
-    if (stocks.data.length > 0 && !stocks.isLoading) {
-      const chartsDatas = submitChartData({
-        values: formState,
-        stocks,
-        indexes: indexeState.length > 0 ? indexes : undefined,
-      });
-
-      setChartState(chartsDatas);
-      setHasProcessedData(true);
+    if (indexeState.length) {
+      if (
+        formState &&
+        stocks.data.length > 0 &&
+        !stocks.isLoading &&
+        !hasProcessedData &&
+        indexes.data.length &&
+        !indexes.isLoading
+      ) {
+        const chartsDatas = submitChartData({
+          values: formState,
+          stocks,
+          indexes,
+        });
+        setChartState(chartsDatas);
+        setHasProcessedData(true);
+      }
+    } else {
+      if (
+        formState &&
+        stocks.data.length > 0 &&
+        !stocks.isLoading &&
+        !hasProcessedData
+      ) {
+        const chartsDatas = submitChartData({
+          values: formState,
+          stocks,
+        });
+        setChartState(chartsDatas);
+        setHasProcessedData(true);
+      }
     }
   }, [
-    formState,
     stocks.data,
     stocks.isLoading,
+    hasProcessedData,
     indexes.data,
     indexes.isLoading,
-    hasProcessedData,
-    setHasProcessedData,
-    indexeState,
   ]);
 
   return (

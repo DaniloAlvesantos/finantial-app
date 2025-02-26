@@ -6,6 +6,10 @@ interface useBackTestStoreProps {
   setFormState: (newState: TicketFormValues) => void;
   hasProcessedData: boolean;
   setHasProcessedData: (hasProcessedData: boolean) => void;
+  tickets: string[];
+  setTickets: (tickets: string[]) => void;
+  indexeState: string[];
+  setIndexeState: (indexes: string[]) => void;
 }
 
 export const useBackTestStore = create<useBackTestStoreProps>((set) => ({
@@ -14,4 +18,8 @@ export const useBackTestStore = create<useBackTestStoreProps>((set) => ({
     set({ formState: newFormState }),
   hasProcessedData: false,
   setHasProcessedData: (hasProcessedData) => set({ hasProcessedData }),
+  tickets: [],
+  indexeState: [],
+  setIndexeState: (indexes) => set({ indexeState: indexes }),
+  setTickets: (tickets) => set({ tickets }),
 }));
