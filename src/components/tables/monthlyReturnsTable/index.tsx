@@ -1,5 +1,7 @@
 import { Button, table } from "@/components";
 import { CardContainer } from "@/components/cards/CardContainer";
+import { currencyFormatter } from "@/lib/currencyFormatter";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 interface MonthlyReturnsTableHeaderProps {
@@ -15,11 +17,25 @@ const MonthlyReturnsTableHeader = ({
 }: MonthlyReturnsTableHeaderProps) => {
   return (
     <table.TableHeader className="font-poppins">
-      <table.TableRow>
-        <table.TableHead>Ano</table.TableHead>
-        <table.TableHead>Mês</table.TableHead>
+      <table.TableRow className="hover:bg-transparent">
+        <table.TableHead rowSpan={2}>Ano</table.TableHead>
+        <table.TableHead rowSpan={2}>Mês</table.TableHead>
         {items.map((value, i) => (
-          <table.TableHead key={i}>{value}</table.TableHead>
+          <table.TableHead key={i} colSpan={2} className="text-center">
+            {value}
+          </table.TableHead>
+        ))}
+      </table.TableRow>
+      <table.TableRow className="hover:bg-transparent">
+        {items.map((value, i) => (
+          <>
+            <table.TableHead key={i} className="border-l">
+              Retorno
+            </table.TableHead>
+            <table.TableHead key={i + 1} className="border-r">
+              Valor
+            </table.TableHead>
+          </>
         ))}
       </table.TableRow>
     </table.TableHeader>
@@ -55,17 +71,25 @@ export const MonthlyReturnsTable = ({
               const month = new Date(value.period).toLocaleString("pt-br", {
                 month: "2-digit",
               });
+
               return (
-                <table.TableRow key={i}>
+                <table.TableRow key={crypto.randomUUID()} className="text-sm">
                   <table.TableCell>{year}</table.TableCell>
                   <table.TableCell>{month}</table.TableCell>
                   {datas.map((value, i) => (
-                    <table.TableCell
-                      key={i}
-                      className={value[1] < 0 ? "text-red-500" : ""}
-                    >
-                      {value[1].toFixed(2) + "%"}
-                    </table.TableCell>
+                    <>
+                      <table.TableCell
+                        key={i}
+                        className={
+                          value[1].percentage < 0 ? "text-red-500" : ""
+                        }
+                      >
+                        {value[1].percentage.toFixed(2) + "%"}
+                      </table.TableCell>
+                      <table.TableCell key={i + 1}>
+                        {currencyFormatter.format(value[1].value)}
+                      </table.TableCell>
+                    </>
                   ))}
                 </table.TableRow>
               );
@@ -79,7 +103,7 @@ export const MonthlyReturnsTable = ({
                 onClick={handleNext}
                 disabled={itemsQuantity >= tableData.length}
               >
-                Próximo
+                Próximo <ChevronRight />
               </Button>
             </table.TableCell>
             <table.TableCell>
@@ -88,10 +112,10 @@ export const MonthlyReturnsTable = ({
                 onClick={handlePrev}
                 disabled={itemsQuantity <= 12}
               >
-                Anterior
+                <ChevronLeft /> Anterior
               </Button>
             </table.TableCell>
-            <table.TableCell>{`${itemsQuantity} - ${
+            <table.TableCell className="underline">{`${itemsQuantity} - ${
               itemsQuantity + 12 > tableData.length
                 ? itemsQuantity
                 : itemsQuantity + 12

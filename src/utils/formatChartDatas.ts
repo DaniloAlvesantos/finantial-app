@@ -51,8 +51,11 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
         chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value;
       drawdownsEntry[`item${wIndex + 1}`] =
         chartsDatas[wallet as keyof ChartDatas]?.drawdowns[idx].value;
-      monthlyReturnsEntry[`Carteira-${wIndex + 1}`] =
-        chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value;
+
+      monthlyReturnsEntry[`Carteira-${wIndex + 1}`] = {
+        percentage: chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value,
+        value: chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value
+      }
     });
 
     timelineData.push(timelineEntry);
