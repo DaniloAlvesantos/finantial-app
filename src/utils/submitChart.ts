@@ -131,7 +131,7 @@ const aggregateChartData = ({
       if (!totalMonthlyReturns[i]) totalMonthlyReturns[i] = 0;
 
       totalTimeline[i] += Number(total.timeline[i].value);
-      totalMonthlyReturns[i] += Number(total.monthlyRetuns[i].value);
+      totalMonthlyReturns[i] += Number(total.monthlyReturn[i].value);
     });
 
     total.annualReturns.forEach((_, i) => {
@@ -204,6 +204,10 @@ export type TotalWalletsCalcProps = {
   totalShares: number;
   bestYear: number;
   worstYear: number;
+  monthlyReturn: {
+    value: number;
+    date: Date;
+  }[];
 };
 
 export const submitChartData = ({
@@ -256,6 +260,7 @@ export const submitChartData = ({
       totalShares: 0,
       bestYear: 0,
       worstYear: 0,
+      monthlyReturn: [],
     };
 
     const bestYear = chartsDatas[currentWalletKey]
@@ -274,18 +279,26 @@ export const submitChartData = ({
     currentWallet.worstYear = Number(worstYear);
 
     wallet.calcs.forEach((calc, i) => {
-      const cumulated =
-        values.tickets.length > 1
-          ? calc.cumulativeReturn *
-            (Number(values.tickets[i][currentWalletKey]) / 100)
-          : calc.cumulativeReturn;
-      currentWallet.cagr += calc.cagr;
-      currentWallet.annualVolatility += calc.annualVolatility;
-      currentWallet.maxDrawdown += calc.maxDrawdown;
-      currentWallet.totalInvested += calc.totalInvested;
+      const ticketPercentage = Number(values.tickets[i][currentWalletKey]) / 100;
+      const cumulated = calc.cumulativeReturn * (ticketPercentage || 1);
+
+      currentWallet.cagr += calc.cagr * (ticketPercentage || 1);
+      currentWallet.annualVolatility += calc.annualVolatility * (ticketPercentage || 1);
+      currentWallet.maxDrawdown += calc.maxDrawdown * (ticketPercentage || 1);
+      currentWallet.totalInvested += calc.totalInvested * (ticketPercentage || 1);
       currentWallet.cumulativeReturn += cumulated;
-      currentWallet.totalDividends += calc.totalDividends;
-      currentWallet.totalShares += calc.totalShares;
+      currentWallet.totalDividends += calc.totalDividends * (ticketPercentage || 1);
+      currentWallet.totalShares += calc.totalShares * (ticketPercentage || 1);
+      calc.monthlyReturn.forEach((monthlyReturn, index) => {
+        if (!currentWallet.monthlyReturn[index]) {
+          currentWallet.monthlyReturn[index] = {
+            value: 0,
+            date: monthlyReturn.date,
+          };
+        }
+        currentWallet.monthlyReturn[index].value +=
+          monthlyReturn.value * (ticketPercentage || 1);
+      });
     });
 
     totalCalcs.push({

@@ -9,6 +9,7 @@ import { formatChartDatas } from "@/utils/formatChartDatas";
 import { SummaryTable } from "../../tables/summaryTable";
 import { CardBackTestResults } from "@/components/cards/BackTestReults";
 import { MonthlyReturnsTable } from "@/components/tables/monthlyReturnsTable";
+import { MetricsTable } from "@/components/tables/metricsTable";
 
 interface BacktestChartsProps {
   chartsDatas: SubmitResultChartDataProps;
@@ -29,7 +30,8 @@ export const BacktestCharts = ({
     drawdownsData,
     timelineData,
     totalCalcsData,
-    monthlyRetunsData,
+    monthlyReturnData,
+    totalMetricsData,
   } = formatChartDatas({ chartsDatas });
 
   return (
@@ -45,7 +47,8 @@ export const BacktestCharts = ({
         <DonutChart chartData={donutData} />
         <TimelineChart chartData={timelineData} />
         <AnnualReturns chartData={annualReturnsData} />
-        <MonthlyReturnsTable tableData={monthlyRetunsData} />
+        <MonthlyReturnsTable tableData={monthlyReturnData} />
+        <MetricsTable tableData={totalMetricsData} />
         <Drawdowns chartData={drawdownsData} />
       </main>
     </section>

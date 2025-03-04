@@ -2,7 +2,6 @@ import {
   extractAnnualReturnsProps,
   extractCAGRProps,
   extractCumulativeReturnsProps,
-  extractRatiosProps,
   extractYearsProps,
   generalValuesProps,
   TrendyProps,
@@ -11,8 +10,6 @@ import {
 import { Metrics } from "./metrics";
 
 export class Calcs {
-  // private metrics: Metrics;
-
   trendy({ previousValue, currentValue }: TrendyProps): number {
     if (previousValue === 0) {
       return 0; // Avoid division by zero
@@ -110,46 +107,6 @@ export class Calcs {
     );
   }
 
-  extractRatios({ percentReturns }: extractRatiosProps) {
-    if (percentReturns.length === 0) {
-      return {
-        sharpeRatio: 0,
-        sortinoRatio: 0,
-      };
-    }
-
-    const riskFreeRate = 0.1325 / 12;
-    const excessReturns = percentReturns.map((r) => r.value - riskFreeRate);
-    const downsideReturns = excessReturns.filter((r) => r < 0);
-
-    const standardDeviation =
-      Math.sqrt(
-        excessReturns.reduce((sum, r) => sum + r ** 2, 0) /
-          (excessReturns.length - 1 || 1)
-      ) || 1;
-
-    const downsideDeviation =
-      Math.sqrt(
-        downsideReturns.reduce((sum, r) => sum + r ** 2, 0) /
-          (downsideReturns.length - 1 || 1)
-      ) || 1;
-
-    const sharpeRatio =
-      excessReturns.reduce((sum, r) => sum + r, 0) /
-      (excessReturns.length || 1) /
-      standardDeviation;
-
-    const sortinoRatio =
-      excessReturns.reduce((sum, r) => sum + r, 0) /
-      (excessReturns.length || 1) /
-      downsideDeviation;
-
-    return {
-      sharpeRatio,
-      sortinoRatio,
-    };
-  }
-
   generalValues({
     initialInvestiment,
     periodValues,
@@ -241,14 +198,14 @@ export class Calcs {
       ? periods.length * monthlyInvest + initialInvestiment
       : initialInvestiment;
 
-    const ratios = this.extractRatios({ percentReturns });
-
     const bestYear: number = Number(
       Math.max(...annualReturns.map((val) => val.value)).toFixed(2)
     );
     const worstYear = Number(
       Math.min(...annualReturns.map((val) => val.value)).toFixed(2)
     );
+
+    console.log(new Metrics(percentReturns.map((r) => r.value), maxDrawdowns).generalCalc());
 
     return {
       timeline,
@@ -260,7 +217,7 @@ export class Calcs {
       })),
       annualVolatility: Number(annualVolatility.toFixed(2)),
       cagr: Number(cagr.toFixed(2)),
-      monthlyRetuns: percentReturns.map((r) => ({
+      monthlyReturn: percentReturns.map((r) => ({
         ...r,
         value: Number(r.value.toFixed(2)),
       })),

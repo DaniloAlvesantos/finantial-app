@@ -5,6 +5,7 @@ import {
 } from "@/types/chartsDatas";
 import { indexesResultsProps } from "./indexes";
 import { TotalWalletsCalcProps } from "./submitChart";
+import { Metrics } from "./metrics";
 
 interface FormatChartDatasProps {
   chartsDatas: SubmitResultChartDataProps;
@@ -26,12 +27,13 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
 
   const timelineData: Record<string, any>[] = [];
   const drawdownsData: Record<string, any>[] = [];
-  const monthlyRetunsData: Record<string, any>[] = [];
+  const monthlyReturnData: Record<string, any>[] = [];
   const annualReturnsData: Record<string, any>[] = [];
   const totalCalcsData: {
     symbol: string;
     values: TotalWalletsCalcProps;
   }[] = [];
+  const totalMetricsData: Record<string, any> = {};
 
   // Formating timeline, drawdown, monthlyReturns
   chartsDatas.wallet1.timeline.forEach((_, idx) => {
@@ -53,14 +55,15 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
         chartsDatas[wallet as keyof ChartDatas]?.drawdowns[idx].value;
 
       monthlyReturnsEntry[`Carteira-${wIndex + 1}`] = {
-        percentage: chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value,
-        value: chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value
-      }
+        percentage:
+          chartsDatas[wallet as keyof ChartDatas]?.monthlyReturns[idx].value,
+        value: chartsDatas[wallet as keyof ChartDatas]?.timeline[idx].value,
+      };
     });
 
     timelineData.push(timelineEntry);
     drawdownsData.push(drawdownsEntry);
-    monthlyRetunsData.push(monthlyReturnsEntry);
+    monthlyReturnData.push(monthlyReturnsEntry);
   });
 
   // Formating annualReturns
@@ -83,9 +86,12 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
         if (timelineData.length === index.results.periodValues.length) {
           index.results.periodValues.forEach((value, i) => {
             timelineData[i] = { ...timelineData[i], [index.name]: value };
-            monthlyRetunsData[i] = {
-              ...monthlyRetunsData[i],
-              [index.name]: value,
+            monthlyReturnData[i] = {
+              ...monthlyReturnData[i],
+              [index.name]: {
+                percentage: index.calcResults?.monthlyReturn[i].value,
+                value,
+              },
             };
           });
           totalCalcsData.push({
@@ -100,9 +106,12 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
             ...drawdownsData[i],
             [index.name]: -Number(index.calcResults?.drawdowns[i].value),
           };
-          monthlyRetunsData[i] = {
-            ...monthlyRetunsData[i],
-            [index.name]: value,
+          monthlyReturnData[i] = {
+            ...monthlyReturnData[i],
+            [index.name]: {
+              percentage: index.calcResults?.monthlyReturn[i].value,
+              value: Number(value.value),
+            },
           };
         });
 
@@ -122,12 +131,28 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
     totalCalcsData.push({ symbol: calc.symbol, values: calc.values });
   });
 
+  totalCalcsData.forEach((calc, i) => {
+    const allZero = calc.values.monthlyReturn.every((val) => val.value === 0);
+    if (!allZero) {
+      const metrics = new Metrics(
+        calc.values.monthlyReturn.map((val) => val.value),
+        calc.values.maxDrawdown
+      );
+      const metricsData = metrics.generalCalc();
+
+      totalMetricsData[calc.symbol] = {
+        ...metricsData,
+      };
+    }
+  });
+
   return {
     donutData,
     timelineData,
     drawdownsData,
     annualReturnsData,
     totalCalcsData,
-    monthlyRetunsData,
+    monthlyReturnData,
+    totalMetricsData,
   };
 };

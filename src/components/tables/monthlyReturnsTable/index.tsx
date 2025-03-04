@@ -2,6 +2,7 @@ import { Button, table } from "@/components";
 import { CardContainer } from "@/components/cards/CardContainer";
 import { currencyFormatter } from "@/lib/currencyFormatter";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import React from "react";
 import { useState } from "react";
 
 interface MonthlyReturnsTableHeaderProps {
@@ -28,14 +29,14 @@ const MonthlyReturnsTableHeader = ({
       </table.TableRow>
       <table.TableRow className="hover:bg-transparent">
         {items.map((value, i) => (
-          <>
+          <React.Fragment key={crypto.randomUUID()}>
             <table.TableHead key={i} className="border-l">
               Retorno
             </table.TableHead>
             <table.TableHead key={i + 1} className="border-r">
               Valor
             </table.TableHead>
-          </>
+          </React.Fragment>
         ))}
       </table.TableRow>
     </table.TableHeader>
@@ -47,7 +48,7 @@ export const MonthlyReturnsTable = ({
 }: MonthlyReturnsTableProps) => {
   const [itemsQuantity, setItemsQuantity] = useState(12);
   const items = Object.keys(tableData[0]).filter((key) => key !== "period");
-
+  
   const handleNext = () => {
     setItemsQuantity((prev) => prev + 12);
   };
@@ -77,7 +78,7 @@ export const MonthlyReturnsTable = ({
                   <table.TableCell>{year}</table.TableCell>
                   <table.TableCell>{month}</table.TableCell>
                   {datas.map((value, i) => (
-                    <>
+                    <React.Fragment key={crypto.randomUUID()}>
                       <table.TableCell
                         key={i}
                         className={
@@ -89,7 +90,7 @@ export const MonthlyReturnsTable = ({
                       <table.TableCell key={i + 1}>
                         {currencyFormatter.format(value[1].value)}
                       </table.TableCell>
-                    </>
+                    </React.Fragment>
                   ))}
                 </table.TableRow>
               );
