@@ -1,4 +1,5 @@
-import { getSelicData } from "@/services/selic";
+import { TicketFormValues } from "@/components/forms/backtest/type";
+import { getSelicAsBenchmark, getSelicData } from "@/services/selic";
 
 export type extractRatiosProps = {
   percentReturns: {
@@ -8,48 +9,50 @@ export type extractRatiosProps = {
 };
 
 export class Metrics {
-  public monthlyReturns: number[] = [];
-  public risk: number | undefined; // Selic
+  public monthlyReturns: number[];
   public maxDrawdown: number;
+  private benchmarkReturns: number[] = [];
+  private riskFreeRate: number = 0;
+  private interval: TicketFormValues["period"];
 
-  constructor(monthlyReturns: number[], maxDrawdown: number) {
+  constructor(
+    monthlyReturns: number[],
+    maxDrawdown: number,
+    interval: TicketFormValues["period"]
+  ) {
     this.monthlyReturns = monthlyReturns;
     this.maxDrawdown = maxDrawdown;
+    this.interval = interval;
     this.initialize();
   }
 
-  async initialize() {
-    // this.risk = await this.getRiskValue();
-    this.risk = 13 / 100;
+  private async initialize() {
+    await this.loadRiskFreeRate();
   }
 
-  async getRiskValue() {
-    const selic = await getSelicData();
+  private async loadRiskFreeRate() {
+    try {
+      const selicData = await getSelicData();
+      const brenchMarkValues = await getSelicAsBenchmark({
+        interval: this.interval,
+      });
 
-    if (!selic || !Array.isArray(selic)) return (this.risk = undefined);
+      if (selicData?.length) {
+        if (Array.isArray(selicData)) {
+          const latestSelic = Number(selicData[selicData.length - 1].valor);
+          this.riskFreeRate = Math.pow(1 + latestSelic / 100, 1 / 12) - 1;
+        }
+      }
 
-    this.risk = Number(selic.sort()[selic.length - 1].valor);
-
-    return this.risk;
+      this.benchmarkReturns = brenchMarkValues;
+    } catch (error) {
+      console.error("Error loading Selic data:", error);
+      this.riskFreeRate = Math.pow(1 + 0.13, 1 / 12) - 1; // Fallback to 13% annual
+    }
   }
 
-  sharpeRatio(): number {
-    const riskFreeRate = this.risk || 0;
-    const excessReturns = this.monthlyReturns.map((ret) => ret - riskFreeRate);
-    const meanExcessReturn =
-      excessReturns.reduce((sum, ret) => sum + ret, 0) / excessReturns.length;
-    const stdDev =
-      Math.sqrt(
-        excessReturns.reduce(
-          (sum, ret) => sum + Math.pow(ret - meanExcessReturn, 2),
-          0
-        ) / (excessReturns.length - 1 || 1)
-      ) || 1;
-
-    return (meanExcessReturn / stdDev) * Math.sqrt(12); // Annualized
-  }
-
-  arithmeticMeanMonthly(): number {
+  // Basic Statistics
+  arithmeticMean(): number {
     return (
       this.monthlyReturns.reduce((sum, r) => sum + r, 0) /
       this.monthlyReturns.length
@@ -57,83 +60,246 @@ export class Metrics {
   }
 
   arithmeticMeanAnnualized(): number {
-    return this.arithmeticMeanMonthly() * 12;
+    return this.arithmeticMean() * 12;
   }
 
-  geometricMean(): number {
-    if (this.monthlyReturns.length === 0) return NaN;
-
-    const validReturns = this.monthlyReturns.filter((r) => r > -1);
+  geometricMean(annualized = false): number {
+    const validReturns = this.monthlyReturns
+      .filter((r) => r > -1)
+      .map((r) => r / 100);
     if (validReturns.length === 0) return NaN;
 
     const product = validReturns.reduce((prod, r) => prod * (1 + r), 1);
-
-    return Math.pow(product, 1 / validReturns.length) - 1;
+    const monthly = product ** (1 / validReturns.length) - 1;
+    return annualized ? (1 + monthly) ** 12 - 1 : monthly;
   }
 
-  geometricMeanAnnualized(): number {
-    const geometricMeanDecimal = this.geometricMean();
-    return Math.pow(1 + geometricMeanDecimal, 12) - 1;
+  standardDeviation(annualized = false): number {
+    const mean = this.arithmeticMean();
+    const variance =
+      this.monthlyReturns.reduce((sum, r) => sum + (r - mean) ** 2, 0) /
+      (this.monthlyReturns.length - 1);
+    return annualized
+      ? Math.sqrt(variance) * Math.sqrt(12)
+      : Math.sqrt(variance);
   }
 
-  standardDeviation(): number {
-    const mean = this.arithmeticMeanMonthly();
+  downsideDeviation(mar = this.riskFreeRate): number {
+    const downsideDiffs = this.monthlyReturns.map((r) => {
+      const diff = r - mar;
+      return diff < 0 ? diff ** 2 : 0;
+    });
     return Math.sqrt(
-      this.monthlyReturns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) /
-        (this.monthlyReturns.length - 1)
-    );
-  }
-
-  standardDeviationAnnualized(): number {
-    return this.standardDeviation() * Math.sqrt(12);
-  }
-
-  downsideDeviation(mar: number): number {
-    const downsideReturns = this.monthlyReturns.map((r) =>
-      Math.min(r - mar, 0)
-    );
-    return Math.sqrt(
-      downsideReturns.reduce((sum, r) => sum + r * r, 0) /
+      downsideDiffs.reduce((sum, val) => sum + val, 0) /
         this.monthlyReturns.length
     );
   }
 
+  // Risk Metrics
+  sharpeRatio(): number {
+    const excessReturn = this.arithmeticMean() - this.riskFreeRate;
+    return (excessReturn / this.standardDeviation()) * Math.sqrt(12);
+  }
+
   sortinoRatio(): number {
-    const riskFreeRateMonthly =
-      Math.pow(1 + (this.risk || 0) / 100, 1 / 12) - 1;
-    const downsideRisk = this.downsideDeviation(riskFreeRateMonthly);
+    const excessReturn = this.arithmeticMean() - this.riskFreeRate;
+    return excessReturn / this.downsideDeviation();
+  }
 
-    // Handle edge cases
-    if (this.monthlyReturns.length === 0 || downsideRisk === 0) {
-      return NaN; // Or handle it appropriately (e.g., return 0 or Infinity)
+  historicalVaR(confidenceLevel = 0.05): number {
+    const sorted = [...this.monthlyReturns].sort((a, b) => a - b);
+    return Math.abs(sorted[Math.floor(confidenceLevel * sorted.length)]);
+  }
+
+  conditionalVaR(confidenceLevel = 0.05): number {
+    const varThreshold = this.historicalVaR(confidenceLevel);
+    const losses = this.monthlyReturns.filter((r) => r <= -varThreshold);
+    return losses.reduce((sum, r) => sum + Math.abs(r), 0) / losses.length;
+  }
+
+  // Benchmark Metrics
+  correlationWithBenchmark(): number {
+    if (!this.benchmarkReturns.length) return NaN;
+
+    const xMean = this.arithmeticMean();
+    const yMean =
+      this.benchmarkReturns.reduce((a, b) => a + b, 0) /
+      this.benchmarkReturns.length;
+
+    const numerator = this.monthlyReturns.reduce(
+      (sum, r, i) => sum + (r - xMean) * (this.benchmarkReturns[i] - yMean),
+      0
+    );
+
+    const denominator = Math.sqrt(
+      this.monthlyReturns.reduce((sum, r) => sum + (r - xMean) ** 2, 0) *
+        this.benchmarkReturns.reduce((sum, r) => sum + (r - yMean) ** 2, 0)
+    );
+
+    return numerator / denominator;
+  }
+
+  beta(): number {
+    if (
+      !this.benchmarkReturns.length ||
+      this.benchmarkReturns.length !== this.monthlyReturns.length
+    ) {
+      return NaN;
     }
+    const covariance = this.monthlyReturns.reduce(
+      (sum, r, i) =>
+        sum +
+        (r - this.arithmeticMean()) *
+          (this.benchmarkReturns[i] - this.benchmarkMean()),
+      0
+    );
 
-    const meanReturn = this.arithmeticMeanMonthly();
-    return (meanReturn - riskFreeRateMonthly) / downsideRisk;
+    return covariance / this.benchmarkVariance();
+  }
+
+  alpha(annualized = true): number {
+    return (
+      (this.arithmeticMean() -
+        this.riskFreeRate -
+        this.beta() * (this.benchmarkMean() - this.riskFreeRate)) *
+      (annualized ? 12 : 1)
+    );
   }
 
   treynorRatio(): number {
-    return this.sharpeRatio() * this.standardDeviation();
+    return (
+      ((this.arithmeticMeanAnnualized() - this.riskFreeRate * 12) /
+        this.beta()) *
+      100
+    );
   }
 
+  // Additional Metrics
   calmarRatio(): number {
-    return this.arithmeticMeanAnnualized() / this.maxDrawdown;
+    return this.arithmeticMeanAnnualized() / Math.abs(this.maxDrawdown);
   }
 
-  activeReturn(): number {
-    return this.arithmeticMeanMonthly();
-  }
+  modiglianiMeasure(): number {
+    if (!this.benchmarkReturns.length) return NaN;
 
-  trackingError(): number {
-    return this.standardDeviation();
+    return this.sharpeRatio() * this.benchmarkStdDev() + this.riskFreeRate;
   }
 
   informationRatio(): number {
-    return this.activeReturn() / this.trackingError();
+    if (!this.benchmarkReturns.length) return NaN;
+
+    return (
+      (this.arithmeticMean() - this.benchmarkMean()) / this.trackingError()
+    );
   }
 
-  skewness(): number {
-    const mean = this.arithmeticMeanMonthly();
+  // Helper Methods
+  private benchmarkMean(): number {
+    return (
+      this.benchmarkReturns.reduce((a, b) => a + b, 0) /
+      this.benchmarkReturns.length
+    );
+  }
+
+  private benchmarkVariance(): number {
+    const mean = this.benchmarkMean();
+    return (
+      this.benchmarkReturns.reduce((sum, r) => sum + (r - mean) ** 2, 0) /
+      this.benchmarkReturns.length
+    );
+  }
+
+  private benchmarkStdDev(): number {
+    return Math.sqrt(this.benchmarkVariance());
+  }
+
+  trackingError(): number {
+    const activeReturns = this.monthlyReturns.map(
+      (r, i) => r - this.benchmarkReturns[i]
+    );
+    const meanActive =
+      activeReturns.reduce((a, b) => a + b, 0) / activeReturns.length;
+    return Math.sqrt(
+      activeReturns.reduce((sum, r) => sum + (r - meanActive) ** 2, 0) /
+        (activeReturns.length - 1)
+    );
+  }
+
+  // Capture Ratios
+  upsideCaptureRatio(): number {
+    const [assetUp, benchUp] = this.filterPositivePeriods();
+    return (assetUp / benchUp) * 100 || 100;
+  }
+
+  downsideCaptureRatio(): number {
+    const [assetDown, benchDown] = this.filterNegativePeriods();
+    return (assetDown / benchDown) * 100 || 100;
+  }
+
+  // Withdrawal Rates
+  safeWithdrawalRate(): number {
+    return Math.min(this.geometricMean(true) * 0.04, 0.04); // 4% rule
+  }
+
+  perpetualWithdrawalRate(): number {
+    return this.geometricMean(true) * 0.03; // 3% perpetual
+  }
+
+  positivePeriodsPercentage(): number {
+    const total = this.monthlyReturns.length;
+    if (total === 0) return 0;
+
+    const positiveCount = this.monthlyReturns.filter((r) => r > 0).length;
+    const percentage = (positiveCount / total) * 100;
+    return percentage;
+  }
+
+  // General Calculations
+  generalCalc() {
+    return {
+      arithmeticMean: this.arithmeticMean(),
+      arithmeticMeanAnnualized: this.arithmeticMeanAnnualized(),
+      geometricMean: this.geometricMean(),
+      geometricMeanAnnualized: this.geometricMean(true),
+      standardDeviation: this.standardDeviation(),
+      standardDeviationAnnualized: this.standardDeviation(true),
+      downsideDeviation: this.downsideDeviation(),
+      maxDrawdown: this.maxDrawdown,
+      sharpeRatio: this.sharpeRatio(),
+      sortinoRatio: this.sortinoRatio(),
+      treynorRatio: this.treynorRatio(),
+      calmarRatio: this.calmarRatio(),
+      modiglianiMeasure: this.modiglianiMeasure(),
+      informationRatio: this.informationRatio(),
+      beta: this.beta(),
+      alpha: this.alpha(),
+      rSquared: this.correlationWithBenchmark() ** 2,
+      correlation: this.correlationWithBenchmark(),
+      historicalVaR: this.historicalVaR(),
+      conditionalVaR: this.conditionalVaR(),
+      upsideCaptureRatio: this.upsideCaptureRatio(),
+      downsideCaptureRatio: this.downsideCaptureRatio(),
+      safeWithdrawalRate: this.safeWithdrawalRate(),
+      perpetualWithdrawalRate: this.perpetualWithdrawalRate(),
+      positivePeriods: this.positivePeriodsPercentage(),
+      gainLossRatio: this.gainLossRatio(),
+      skewness: this.calculateSkewness(),
+      excessKurtosis: this.calculateKurtosis(),
+    };
+  }
+
+  // Maintained from original
+  private gainLossRatio(): number {
+    const gains = this.monthlyReturns.filter((r) => r > 0);
+    const losses = this.monthlyReturns.filter((r) => r < 0);
+    return (
+      gains.reduce((sum, r) => sum + r, 0) /
+      (losses.reduce((sum, r) => sum + Math.abs(r), 0) || 1)
+    );
+  }
+
+  private calculateSkewness(): number {
+    const mean = this.arithmeticMean();
     const stdDev = this.standardDeviation();
     return (
       this.monthlyReturns.reduce(
@@ -143,8 +309,8 @@ export class Metrics {
     );
   }
 
-  excessKurtosis(): number {
-    const mean = this.arithmeticMeanMonthly();
+  private calculateKurtosis(): number {
+    const mean = this.arithmeticMean();
     const stdDev = this.standardDeviation();
     return (
       this.monthlyReturns.reduce(
@@ -156,75 +322,25 @@ export class Metrics {
     );
   }
 
-  historicalVaR(p: number): number {
-    const sortedReturns = [...this.monthlyReturns].sort((a, b) => a - b);
-    return sortedReturns[Math.floor(p * sortedReturns.length)];
-  }
-
-  conditionalVaR(p: number): number {
-    const varThreshold = this.historicalVaR(p);
-    const losses = this.monthlyReturns.filter((r) => r <= varThreshold);
-    return losses.reduce((sum, r) => sum + r, 0) / losses.length;
-  }
-
-  upsideCaptureRatio(): number {
-    return 100; // Sem benchmark, retorno sempre será 100% do próprio ativo
-  }
-
-  downsideCaptureRatio(): number {
-    return 100; // Sem benchmark, retorno sempre será 100% do próprio ativo
-  }
-
-  safeWithdrawalRate(): number {
-    return this.geometricMeanAnnualized() * 0.8;
-  }
-
-  perpetualWithdrawalRate(): number {
-    return this.geometricMeanAnnualized() * 0.8;
-  }
-
-  positivePeriods(): number {
-    return this.monthlyReturns.filter((r) => r > 0).length;
-  }
-
-  gainLossRatio(): number {
-    const gains = this.monthlyReturns.filter((r) => r > 0);
-    const losses = this.monthlyReturns.filter((r) => r < 0);
-    return (
-      gains.reduce((sum, r) => sum + r, 0) /
-      (losses.reduce((sum, r) => sum + Math.abs(r), 0) || 1)
+  private filterPositivePeriods(): [number, number] {
+    const benchPositive = this.benchmarkReturns.filter((r) => r > 0);
+    const assetPositive = this.monthlyReturns.filter(
+      (_, i) => this.benchmarkReturns[i] > 0
     );
+    return [
+      assetPositive.reduce((a, b) => a + b, 0) / assetPositive.length,
+      benchPositive.reduce((a, b) => a + b, 0) / benchPositive.length,
+    ];
   }
 
-  generalCalc() {
-    return {
-      arithmeticMeanMonthly: this.arithmeticMeanMonthly(),
-      arithmeticMeanAnnualized: this.arithmeticMeanAnnualized(),
-      geometricMean: this.geometricMean(),
-      geometricMeanAnnualized: this.geometricMeanAnnualized(),
-      standardDeviation: this.standardDeviation(),
-      standardDeviationAnnualized: this.standardDeviationAnnualized(),
-      downsideDeviation: this.downsideDeviation(
-        Math.pow(1 + (this.risk || 0) / 100, 1 / 12) - 1
-      ),
-      maxDrawdown: this.maxDrawdown,
-      sharpeRatio: this.sharpeRatio(),
-      sortinoRatio: this.sortinoRatio(),
-      treynorRatio: this.treynorRatio(),
-      calmarRatio: this.calmarRatio(),
-      activeReturn: this.activeReturn(),
-      trackingError: this.trackingError(),
-      informationRatio: this.informationRatio(),
-      skewness: this.skewness(),
-      excessKurtosis: this.excessKurtosis(),
-      historicalVaR: this.historicalVaR(0.05), // 5% confidence level
-      conditionalVaR: this.conditionalVaR(0.05), // 5% confidence level
-      upsideCaptureRatio: this.upsideCaptureRatio(),
-      downsideCaptureRatio: this.downsideCaptureRatio(),
-      safeWithdrawalRate: this.safeWithdrawalRate(),
-      perpetualWithdrawalRate: this.perpetualWithdrawalRate(),
-      positivePeriods: this.positivePeriods(),
-      gainLossRatio: this.gainLossRatio(),
-    };
+  private filterNegativePeriods(): [number, number] {
+    const benchNegative = this.benchmarkReturns.filter((r) => r < 0);
+    const assetNegative = this.monthlyReturns.filter(
+      (_, i) => this.benchmarkReturns[i] < 0
+    );
+    return [
+      assetNegative.reduce((a, b) => a + b, 0) / assetNegative.length,
+      benchNegative.reduce((a, b) => a + b, 0) / benchNegative.length,
+    ];
   }
 }

@@ -7,7 +7,6 @@ import {
   TrendyProps,
   updateValueGeneralProps,
 } from "@/types/calcsProps";
-import { Metrics } from "./metrics";
 
 export class Calcs {
   trendy({ previousValue, currentValue }: TrendyProps): number {
@@ -204,8 +203,6 @@ export class Calcs {
     const worstYear = Number(
       Math.min(...annualReturns.map((val) => val.value)).toFixed(2)
     );
-
-    console.log(new Metrics(percentReturns.map((r) => r.value), maxDrawdowns).generalCalc());
 
     return {
       timeline,

@@ -94,10 +94,13 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
               },
             };
           });
-          totalCalcsData.push({
-            symbol: index.name,
-            values: index.calcResults!,
-          });
+
+          index.name !== "IPCA"
+            ? totalCalcsData.push({
+                symbol: index.name,
+                values: index.calcResults!,
+              })
+            : null;
         }
       } else {
         index.calcResults?.timeline.forEach((value, i) => {
@@ -134,9 +137,23 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
   totalCalcsData.forEach((calc, i) => {
     const allZero = calc.values.monthlyReturn.every((val) => val.value === 0);
     if (!allZero) {
+      const from = calc.values.monthlyReturn[0].date;
+      const to =
+        calc.values.monthlyReturn[calc.values.monthlyReturn.length - 1].date;
+
       const metrics = new Metrics(
         calc.values.monthlyReturn.map((val) => val.value),
-        calc.values.maxDrawdown
+        calc.values.maxDrawdown,
+        {
+          from: {
+            month: String(from.getMonth() + 1),
+            year: String(from.getFullYear()),
+          },
+          to: {
+            month: String(to.getMonth() + 1),
+            year: String(to.getFullYear()),
+          },
+        }
       );
       const metricsData = metrics.generalCalc();
 
