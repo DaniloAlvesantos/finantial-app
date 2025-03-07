@@ -8,47 +8,29 @@ export type extractRatiosProps = {
   }[];
 };
 
+type MetricsProps = {
+  monthlyReturns: number[],
+  benchmarkReturns: number[],
+  maxDrawdown: number,
+  riskFreeRate: number
+}
+
 export class Metrics {
   public monthlyReturns: number[];
   public maxDrawdown: number;
-  private benchmarkReturns: number[] = [];
-  private riskFreeRate: number = 0;
-  private interval: TicketFormValues["period"];
+  private benchmarkReturns: number[];
+  private riskFreeRate: number;
+  private initialized: boolean = false;
 
-  constructor(
-    monthlyReturns: number[],
-    maxDrawdown: number,
-    interval: TicketFormValues["period"]
-  ) {
+  constructor({maxDrawdown, monthlyReturns, riskFreeRate, benchmarkReturns}: MetricsProps) {
     this.monthlyReturns = monthlyReturns;
     this.maxDrawdown = maxDrawdown;
-    this.interval = interval;
-    this.initialize();
+    this.riskFreeRate = riskFreeRate / 100;
+    this.benchmarkReturns = benchmarkReturns?? [];
   }
 
-  private async initialize() {
-    await this.loadRiskFreeRate();
-  }
-
-  private async loadRiskFreeRate() {
-    try {
-      const selicData = await getSelicData();
-      const brenchMarkValues = await getSelicAsBenchmark({
-        interval: this.interval,
-      });
-
-      if (selicData?.length) {
-        if (Array.isArray(selicData)) {
-          const latestSelic = Number(selicData[selicData.length - 1].valor);
-          this.riskFreeRate = Math.pow(1 + latestSelic / 100, 1 / 12) - 1;
-        }
-      }
-
-      this.benchmarkReturns = brenchMarkValues;
-    } catch (error) {
-      console.error("Error loading Selic data:", error);
-      this.riskFreeRate = Math.pow(1 + 0.13, 1 / 12) - 1; // Fallback to 13% annual
-    }
+  public async init() {
+    this.initialized = true;
   }
 
   // Basic Statistics
@@ -64,14 +46,18 @@ export class Metrics {
   }
 
   geometricMean(annualized = false): number {
+    if (this.monthlyReturns.length === 0) return NaN;
+
     const validReturns = this.monthlyReturns
       .filter((r) => r > -1)
-      .map((r) => r / 100);
+   
     if (validReturns.length === 0) return NaN;
 
     const product = validReturns.reduce((prod, r) => prod * (1 + r), 1);
-    const monthly = product ** (1 / validReturns.length) - 1;
-    return annualized ? (1 + monthly) ** 12 - 1 : monthly;
+
+    return annualized
+      ? (Math.pow(product, 1 / validReturns.length) - 1) * 12
+      : Math.pow(product, 1 / validReturns.length) - 1;
   }
 
   standardDeviation(annualized = false): number {
@@ -238,7 +224,7 @@ export class Metrics {
 
   // Withdrawal Rates
   safeWithdrawalRate(): number {
-    return Math.min(this.geometricMean(true) * 0.04, 0.04); // 4% rule
+    return Math.min(this.geometricMean(true) * 0.04, 0.04);
   }
 
   perpetualWithdrawalRate(): number {

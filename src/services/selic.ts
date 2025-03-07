@@ -12,7 +12,7 @@ export const getSelicData = async () => {
     return statusText;
   }
 
-  return data;
+  return data[data.length - 1].valor;
 };
 
 interface getSelicAsBenchmarkProps {
@@ -22,12 +22,12 @@ interface getSelicAsBenchmarkProps {
 export const getSelicAsBenchmark = async ({
   interval,
 }: getSelicAsBenchmarkProps) => {
-  if(!interval) return [];
-  
+  if (!interval) return [];
+
   const { from, to } = interval;
   const initialDate = `01/${from.month}/${from.year}`;
   const endDate = `01/${to.month}/${to.year}`;
-  
+
   const { data } = await axios.get<SelicResponse[]>(
     `https://api.bcb.gov.br/dados/serie/bcdata.sgs.4189/dados?formato=json&dataInicial=${initialDate}&dataFinal=${endDate}`
   );

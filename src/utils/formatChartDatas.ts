@@ -5,7 +5,6 @@ import {
 } from "@/types/chartsDatas";
 import { indexesResultsProps } from "./indexes";
 import { TotalWalletsCalcProps } from "./submitChart";
-import { Metrics } from "./metrics";
 
 interface FormatChartDatasProps {
   chartsDatas: SubmitResultChartDataProps;
@@ -33,7 +32,6 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
     symbol: string;
     values: TotalWalletsCalcProps;
   }[] = [];
-  const totalMetricsData: Record<string, any> = {};
 
   // Formating timeline, drawdown, monthlyReturns
   chartsDatas.wallet1.timeline.forEach((_, idx) => {
@@ -134,17 +132,21 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
     totalCalcsData.push({ symbol: calc.symbol, values: calc.values });
   });
 
-  totalCalcsData.forEach((calc, i) => {
-    const allZero = calc.values.monthlyReturn.every((val) => val.value === 0);
-    if (!allZero) {
+  const metricsCreationData = totalCalcsData
+    .filter((calc) => {
+      const allZero = calc.values.monthlyReturn.every((val) => val.value === 0);
+      return !allZero;
+    })
+    .map((calc) => {
       const from = calc.values.monthlyReturn[0].date;
       const to =
         calc.values.monthlyReturn[calc.values.monthlyReturn.length - 1].date;
 
-      const metrics = new Metrics(
-        calc.values.monthlyReturn.map((val) => val.value),
-        calc.values.maxDrawdown,
-        {
+      return {
+        symbol: calc.symbol,
+        monthlyReturns: calc.values.monthlyReturn.map((val) => val.value),
+        maxDrawdown: calc.values.maxDrawdown,
+        interval: {
           from: {
             month: String(from.getMonth() + 1),
             year: String(from.getFullYear()),
@@ -153,15 +155,9 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
             month: String(to.getMonth() + 1),
             year: String(to.getFullYear()),
           },
-        }
-      );
-      const metricsData = metrics.generalCalc();
-
-      totalMetricsData[calc.symbol] = {
-        ...metricsData,
+        },
       };
-    }
-  });
+    });
 
   return {
     donutData,
@@ -170,6 +166,6 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
     annualReturnsData,
     totalCalcsData,
     monthlyReturnData,
-    totalMetricsData,
+    metricsCreationData,
   };
 };
