@@ -40,7 +40,7 @@ export function useSelicBenchmark(interval: TicketFormValues["period"] | undefin
     queryFn: () => fetchSelicBenchmark(interval!),
     enabled: !!interval,
     select: (data) => {
-      return data.data.map((val) => Number(val.valor) / 100);
+      return data.data.map((val) => Number(val.valor));
     },
   });
 }

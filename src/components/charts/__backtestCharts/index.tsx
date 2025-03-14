@@ -68,21 +68,19 @@ export const BacktestCharts = ({
           maxDrawdown: data.maxDrawdown,
           monthlyReturns: data.monthlyReturns,
           riskFreeRate: selic.data ?? 13,
-          benchmarkReturns: benchmark.data ?? [],
+          benchmarkValues: benchmark.data ?? [],
         });
-        return metrics.init().then(() => ({
+
+        return {
           symbol: data.symbol,
           metrics,
-        }));
+        };
       });
 
-      // Wait for all metrics to initialize
-      const initializedMetrics = await Promise.all(metricsInstances);
-
       // Calculate metrics data
-      const totalMetricsData = initializedMetrics.reduce(
+      const totalMetricsData = metricsInstances.reduce(
         (acc, { symbol, metrics }) => {
-          acc[symbol] = metrics.generalCalc();
+          acc[symbol] = metrics.calculateAllMetrics();
           return acc;
         },
         {} as Record<string, any>
