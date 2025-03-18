@@ -39,7 +39,6 @@ export class Metrics {
     this.maxDrawdown = maxDrawdown / 100;
   }
 
-  // Helper functions
   private mean(array: number[]): number {
     return array.reduce((sum, value) => sum + value, 0) / array.length;
   }
@@ -74,15 +73,6 @@ export class Metrics {
     return sum / divisor;
   }
 
-  public print(): void {
-    console.log(`Monthly Returns: ${this.monthlyReturns.join(", ")}`);
-    console.log(`Max Drawdown: ${this.maxDrawdown}`);
-    console.log(`Benchmark Returns: ${this.benchmarkReturns.join(", ")}`);
-    console.log(`Benchmark Values: ${this.benchmarkValues.join(", ")}`);
-    console.log(`Risk-Free Rate: ${this.riskFreeRate}%`);
-  }
-
-  // Core metrics calculations
   arithmeticMeanMonthly(): number {
     return this.mean(this.monthlyReturns);
   }
@@ -94,7 +84,9 @@ export class Metrics {
   geometricMean(annualized = false): number {
     if (this.monthlyReturns.length === 0) return NaN;
 
-    const validReturns = this.monthlyReturns.map(r => r / 100).filter((r) => r > -1);
+    const validReturns = this.monthlyReturns
+      .map((r) => r / 100)
+      .filter((r) => r > -1);
 
     if (validReturns.length === 0) return NaN;
 
@@ -180,10 +172,10 @@ export class Metrics {
   }
 
   sharpeRatio(): number {
-    const excessReturn = this.arithmeticMeanAnnualized() - this.riskFreeRate * 100;
+    const excessReturn =
+      this.arithmeticMeanAnnualized() - this.riskFreeRate * 100;
     const annualStdDev = this.standardDeviationAnnualized();
 
-    // Avoid division by zero
     if (annualStdDev === 0) return 0;
 
     return excessReturn / annualStdDev;
@@ -194,7 +186,6 @@ export class Metrics {
       this.arithmeticMeanAnnualized() - this.riskFreeRate * 100;
     const downsideDev = this.downsideDeviationMonthly() * Math.sqrt(12);
 
-    // Avoid division by zero
     if (downsideDev === 0) return 0;
 
     return excessReturn / downsideDev;
@@ -238,18 +229,19 @@ export class Metrics {
   }
 
   trackingError(): number | null {
-    if (!this.benchmarkReturns || this.benchmarkReturns.length === 0)
-      return null;
+    if (!this.benchmarkReturns?.length) return null;
 
     const activeReturns = this.monthlyReturns.map(
-      (r, i) => r - this.benchmarkReturns[i] * 100
+      (r, i) => r - this.benchmarkReturns[i]
     );
-    return Math.sqrt(this.variance(activeReturns)) * Math.sqrt(12);
+    const sampleVariance = this.variance(activeReturns, undefined, true);
+    return Math.sqrt(sampleVariance) * Math.sqrt(12);
   }
 
   informationRatio(): number | null {
     const activeRet = this.activeReturn();
     const trackingErr = this.trackingError();
+    console.log({ activeRet, trackingErr });
 
     if (activeRet === null || trackingErr === null || trackingErr === 0)
       return null;
@@ -261,7 +253,7 @@ export class Metrics {
     const mean = this.arithmeticMeanMonthly();
     const std = this.standardDeviationMonthly();
 
-    if (std === 0) return 0; // Avoid division by zero
+    if (std === 0) return 0;
 
     let sum = 0;
     for (const r of this.monthlyReturns) {
@@ -275,14 +267,14 @@ export class Metrics {
     const mean = this.arithmeticMeanMonthly();
     const std = this.standardDeviationMonthly();
 
-    if (std === 0) return 0; // Avoid division by zero
+    if (std === 0) return 0;
 
     let sum = 0;
     for (const r of this.monthlyReturns) {
       sum += Math.pow((r - mean) / std, 4);
     }
 
-    return sum / this.monthlyReturns.length - 3; // Subtract 3 to get excess kurtosis
+    return sum / this.monthlyReturns.length - 3;
   }
 
   historicalValueAtRisk(confidence: number = 0.05): number {
@@ -291,7 +283,6 @@ export class Metrics {
     const sortedReturns = [...this.monthlyReturns].sort((a, b) => a - b);
     const index = Math.floor(confidence * sortedReturns.length);
 
-    // Make sure the index is valid
     if (index >= sortedReturns.length)
       return -sortedReturns[sortedReturns.length - 1];
 
@@ -311,15 +302,11 @@ export class Metrics {
     }
   }
 
-  // Helper function for analytical VaR calculation
   private normalInverseCDF(p: number): number {
-    // Approximation of the inverse normal CDF
-    // This is a simple approximation, a real implementation would use more accurate methods
     if (p <= 0 || p >= 1) {
       throw new Error("Probability must be between 0 and 1");
     }
 
-    // Approximation for 0 < p < 1
     const a1 = -3.969683028665376e1;
     const a2 = 2.209460984245205e2;
     const a3 = -2.759285104469687e2;
@@ -345,29 +332,23 @@ export class Metrics {
     const d3 = 2.445134137142996;
     const d4 = 3.754408661907416;
 
-    // Define break-points
     const p_low = 0.02425;
     const p_high = 1 - p_low;
 
     let x: number;
 
-    // Rational approximation for lower region
     if (p < p_low) {
       const q = Math.sqrt(-2 * Math.log(p));
       x =
         (((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
         ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
-    }
-    // Rational approximation for central region
-    else if (p <= p_high) {
+    } else if (p <= p_high) {
       const q = p - 0.5;
       const r = q * q;
       x =
         ((((((a1 * r + a2) * r + a3) * r + a4) * r + a5) * r + a6) * q) /
         (((((b1 * r + b2) * r + b3) * r + b4) * r + b5) * r + 1);
-    }
-    // Rational approximation for upper region
-    else {
+    } else {
       const q = Math.sqrt(-2 * Math.log(1 - p));
       x =
         -(((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
@@ -402,7 +383,7 @@ export class Metrics {
     for (let i = 0; i < this.monthlyReturns.length; i++) {
       if (this.benchmarkReturns[i] > 0) {
         portfolioUpSum += this.monthlyReturns[i];
-        benchmarkUpSum += this.benchmarkReturns[i] * 100;
+        benchmarkUpSum += this.benchmarkReturns[i];
         upPeriods++;
       }
     }
@@ -423,16 +404,14 @@ export class Metrics {
     for (let i = 0; i < this.monthlyReturns.length; i++) {
       if (this.benchmarkReturns[i] < 0) {
         portfolioDownSum += this.monthlyReturns[i];
-        benchmarkDownSum += this.benchmarkReturns[i] * 100;
+        benchmarkDownSum += this.benchmarkReturns[i];
         downPeriods++;
       }
     }
 
     if (downPeriods === 0 || benchmarkDownSum === 0) return null;
 
-    return (
-      (portfolioDownSum / downPeriods / (benchmarkDownSum / downPeriods)) * 100
-    );
+    return portfolioDownSum / downPeriods / (benchmarkDownSum / downPeriods);
   }
 
   private isWithdrawalRateSustainable(
@@ -448,15 +427,6 @@ export class Metrics {
     }
 
     return true;
-  }
-
-  perpetualWithdrawalRate(): number {
-    // A simple perpetual withdrawal rate calculation
-    // Using the long-term real growth rate minus a safety margin
-    return Math.max(
-      0,
-      this.geometricMean(true) - this.standardDeviationAnnualized() * 0.5
-    );
   }
 
   positivePeriodsPercentage(): number {
@@ -476,44 +446,41 @@ export class Metrics {
     const avgGain = this.mean(gains);
     const avgLoss = Math.abs(this.mean(losses));
 
-    // Avoid division by zero
     if (avgLoss === 0) return Number.POSITIVE_INFINITY;
 
     return avgGain / avgLoss;
   }
 
-  // Method to calculate all metrics at once and return them as an object
   calculateAllMetrics(): Record<string, number | null> {
-    this.print();
     return {
-      arithmeticMeanMonthly: this.arithmeticMeanMonthly(),
-      arithmeticMeanAnnualized: this.arithmeticMeanAnnualized(),
-      geometricMeanMonthly: this.geometricMean() * 100,
-      geometricMeanAnnualized: this.geometricMean(true) * 100,
-      standardDeviationMonthly: this.standardDeviationMonthly(),
-      standardDeviationAnnualized: this.standardDeviationAnnualized(),
-      downsideDeviationMonthly: this.downsideDeviationMonthly(),
-      maximumDrawdown: this.maxDrawdown * 100,
-      benchmarkCorrelation: this.benchmarkCorrelation()! * 10,
+      médiaAritméticaMensal: this.arithmeticMeanMonthly(),
+      médiaAritméticaAnualizada: this.arithmeticMeanAnnualized(),
+      médiaGeométricaMensal: this.geometricMean() * 100,
+      médiaGeométricaAnualizada: this.geometricMean(true) * 100,
+      desvioPadrãoMensal: this.standardDeviationMonthly(),
+      desvioPadrãoAnualizado: this.standardDeviationAnnualized(),
+      desvioNegativoMensal: this.downsideDeviationMonthly(),
+      perdaMáxima: this.maxDrawdown * 100,
+      correlaçãoBenchmark: this.benchmarkCorrelation()! * 10,
       beta: this.beta()! / 10,
-      alphaAnnualized: this.alphaAnnualized()!,
+      alfaAnualizado: this.alphaAnnualized()!,
       r2: this.r2()! * 100,
-      sharpeRatio: this.sharpeRatio(),
-      sortinoRatio: this.sortinoRatio(),
-      treynorRatio: this.treynorRatio()! * 100,
-      calmarRatio: this.calmarRatio(),
+      índiceSharpe: this.sharpeRatio(),
+      índiceSortino: this.sortinoRatio(),
+      índiceTreynor: this.treynorRatio()! * 100,
+      índiceCalmar: this.calmarRatio(),
+      índiceInformação: this.informationRatio(),
       trackingError: this.trackingError(),
-      informationRatio: this.informationRatio(),
-      skewness: this.skewness(),
-      activeReturn: this.activeReturn(),
-      excessKurtosis: this.excessKurtosis(),
-      historicalValueAtRisk: this.historicalValueAtRisk(),
-      analyticalValueAtRisk: this.analyticalValueAtRisk(),
-      conditionalValueAtRisk: this.conditionalValueAtRisk(),
-      upsideCaptureRatio: this.upsideCaptureRatio(),
-      downsideCaptureRatio: this.downsideCaptureRatio(),
-      positivePeriodsPercentage: this.positivePeriodsPercentage(),
-      gainLossRatio: this.gainLossRatio(),
+      assimetria: this.skewness(),
+      retornoAtivo: this.activeReturn(),
+      curtoseExcessiva: this.excessKurtosis(),
+      valorRiscoHistórico: this.historicalValueAtRisk(),
+      valorRiscoAnalítico: this.analyticalValueAtRisk(),
+      valorRiscoCondicional: this.conditionalValueAtRisk(),
+      capturaGanhos: this.upsideCaptureRatio(),
+      capturaPerdas: this.downsideCaptureRatio(),
+      períodosPositivos: this.positivePeriodsPercentage(),
+      razãoGanhoPerda: this.gainLossRatio(),
     };
   }
 }

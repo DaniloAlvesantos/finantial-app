@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
-import { SubmitResultChartDataProps, TotalCalcs } from "@/types/chartsDatas";
-import { DonutChart } from "../donutChart/donutChart";
-import { TimelineChart } from "../timeline/timeline";
-import { Drawdowns } from "../drawdowns/drawdowns";
-import { AnnualReturns } from "../annualReturns/annualReturns";
-import { formatChartDatas } from "@/utils/formatChartDatas";
-import { SummaryTable } from "../../tables/summaryTable";
-import { CardBackTestResults } from "@/components/cards/BackTestReults";
-import { MonthlyReturnsTable } from "@/components/tables/monthlyReturnsTable";
-import { MetricsTable } from "@/components/tables/metricsTable";
-import { Metrics } from "@/utils/metrics";
-import { Spin } from "@/components/loading/spin/spin";
 import { useSelicCurrentMonth, useSelicBenchmark } from "@/hooks/useSelic";
+
+import { Metrics } from "@/utils/metrics";
+import { formatChartDatas } from "@/utils/formatChartDatas";
+import { SubmitResultChartDataProps, TotalCalcs } from "@/types/chartsDatas";
+
+import { Drawdowns } from "../drawdowns/drawdowns";
+import { TimelineChart } from "../timeline/timeline";
+import { DonutChart } from "../donutChart/donutChart";
+import { SummaryTable } from "../../tables/summaryTable";
+import { AnnualReturns } from "../annualReturns/annualReturns";
+import {
+  CardBackTestResults,
+  Spin,
+  MonthlyReturnsTable,
+  MetricsTable,
+} from "@/components";
 
 interface BacktestChartsProps {
   chartsDatas: SubmitResultChartDataProps;

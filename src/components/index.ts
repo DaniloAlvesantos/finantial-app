@@ -9,3 +9,4 @@ export * from "./buttons/shareBacktest";
 export * from "./cards/BackTestReults";
 export * from "./cards/CardContainer";
 export * from "./ui";
+export * from "./tables/metricsTable";
