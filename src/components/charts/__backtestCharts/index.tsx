@@ -104,7 +104,7 @@ export const BacktestCharts = ({
     processData();
   }, [chartsDatas, benchmark.data, selic.data]);
 
-  if (!processedData) {
+  if (!processedData || benchmark.isLoading) {
     return <Spin />;
   }
 
