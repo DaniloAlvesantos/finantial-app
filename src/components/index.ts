@@ -10,3 +10,4 @@ export * from "./cards/BackTestReults";
 export * from "./cards/CardContainer";
 export * from "./ui";
 export * from "./tables/metricsTable";
+export * from "./tables/pandemicStressTable";

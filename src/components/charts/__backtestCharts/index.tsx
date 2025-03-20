@@ -15,7 +15,9 @@ import {
   Spin,
   MonthlyReturnsTable,
   MetricsTable,
+  PandemicStressTable,
 } from "@/components";
+import { extractPandemicStress } from "@/utils/extractPandemicStress";
 
 interface BacktestChartsProps {
   chartsDatas: SubmitResultChartDataProps;
@@ -108,6 +110,10 @@ export const BacktestCharts = ({
     return <Spin />;
   }
 
+  const pandemicStressData = [
+    extractPandemicStress({ timelineData: processedData.timelineData }),
+  ];
+
   return (
     <section>
       {isShared ? null : (
@@ -124,6 +130,7 @@ export const BacktestCharts = ({
         <MonthlyReturnsTable tableData={processedData.monthlyReturnData} />
         <MetricsTable tableData={processedData.totalMetricsData} />
         <Drawdowns chartData={processedData.drawdownsData} />
+        <PandemicStressTable data={pandemicStressData} />
       </main>
     </section>
   );

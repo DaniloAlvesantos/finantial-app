@@ -241,7 +241,6 @@ export class Metrics {
   informationRatio(): number | null {
     const activeRet = this.activeReturn();
     const trackingErr = this.trackingError();
-    console.log({ activeRet, trackingErr });
 
     if (activeRet === null || trackingErr === null || trackingErr === 0)
       return null;

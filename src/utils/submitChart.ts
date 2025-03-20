@@ -279,15 +279,19 @@ export const submitChartData = ({
     currentWallet.worstYear = Number(worstYear);
 
     wallet.calcs.forEach((calc, i) => {
-      const ticketPercentage = Number(values.tickets[i][currentWalletKey]) / 100;
+      const ticketPercentage =
+        Number(values.tickets[i][currentWalletKey]) / 100;
       const cumulated = calc.cumulativeReturn * (ticketPercentage || 1);
 
       currentWallet.cagr += calc.cagr * (ticketPercentage || 1);
-      currentWallet.annualVolatility += calc.annualVolatility * (ticketPercentage || 1);
+      currentWallet.annualVolatility +=
+        calc.annualVolatility * (ticketPercentage || 1);
       currentWallet.maxDrawdown += calc.maxDrawdown * (ticketPercentage || 1);
-      currentWallet.totalInvested += calc.totalInvested * (ticketPercentage || 1);
+      currentWallet.totalInvested +=
+        calc.totalInvested * (ticketPercentage || 1);
       currentWallet.cumulativeReturn += cumulated;
-      currentWallet.totalDividends += calc.totalDividends * (ticketPercentage || 1);
+      currentWallet.totalDividends +=
+        calc.totalDividends * (ticketPercentage || 1);
       currentWallet.totalShares += calc.totalShares * (ticketPercentage || 1);
       calc.monthlyReturn.forEach((monthlyReturn, index) => {
         if (!currentWallet.monthlyReturn[index]) {
