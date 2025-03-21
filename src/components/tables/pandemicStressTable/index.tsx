@@ -2,7 +2,7 @@ import { table, CardContainer } from "@/components";
 import { extractPandemicStressReturnType } from "@/utils/extractPandemicStress";
 
 interface PandemicStressTableProps {
-  data: extractPandemicStressReturnType[];
+  data: extractPandemicStressReturnType;
 }
 
 function formatSymbolsName(name: string): string {
@@ -14,31 +14,42 @@ function formatSymbolsName(name: string): string {
 }
 
 function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString("pt-BR", {
-    month: "short",
-    year: "numeric",
-  })
-  .replace(/. de/g, "")
-  .replace(/^./, (char) => char.toUpperCase());
+  return new Date(date)
+    .toLocaleDateString("pt-BR", {
+      month: "short",
+      year: "numeric",
+    })
+    .replace(/. de/g, "")
+    .replace(/^./, (char) => char.toUpperCase());
 }
 
 export const PandemicStressTable = ({ data }: PandemicStressTableProps) => {
+  if (!data) return;
+
   return (
-    <CardContainer title="Período Pandemia">
+    <CardContainer title="Período Pandemia" description="Maior queda mundial">
       <table.Table>
         <PandemicStressTableHead />
         <table.TableBody className="font-montserrat font-medium">
           {data.map((value, i) => {
             if (!value) return;
-
+            
             return (
-              <table.TableRow key={i}>
+              <table.TableRow key={i} className="hover:bg-transparent">
                 <table.TableCell>
                   {formatSymbolsName(value.symbol)}
                 </table.TableCell>
-                <table.TableCell>{formatDate(value.start.period)}</table.TableCell>
-                <table.TableCell>{formatDate(value.end.period)}</table.TableCell>
-                <table.TableCell>{value.result + "%"}</table.TableCell>
+                <table.TableCell>
+                  {formatDate(value.start.period)}
+                </table.TableCell>
+                <table.TableCell>
+                  {formatDate(value.end.period)}
+                </table.TableCell>
+                <table.TableCell
+                  className={Number(value.returnValue) < 0 ? "text-red-500" : ""}
+                >
+                  {value.returnValue + "%"}
+                </table.TableCell>
               </table.TableRow>
             );
           })}
@@ -51,7 +62,7 @@ export const PandemicStressTable = ({ data }: PandemicStressTableProps) => {
 const PandemicStressTableHead = () => {
   return (
     <table.TableHeader className="font-poppins">
-      <table.TableRow>
+      <table.TableRow className="hover:bg-transparent">
         <table.TableHead>Ação</table.TableHead>
         <table.TableHead>Começo</table.TableHead>
         <table.TableHead>Fim</table.TableHead>

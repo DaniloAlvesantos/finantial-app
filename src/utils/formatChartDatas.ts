@@ -157,7 +157,8 @@ export const formatChartDatas = ({ chartsDatas }: FormatChartDatasProps) => {
           },
         },
       };
-    });
+    })
+    .filter((val) => val.symbol !== "CDI");
 
   return {
     donutData,

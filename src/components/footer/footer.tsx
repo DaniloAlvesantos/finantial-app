@@ -12,7 +12,11 @@ export const Footer = () => {
           <FooterLink style="small" href="">
             Sobre nos
           </FooterLink>
-          <FooterLink style="small" href="">
+          <FooterLink
+            target="_blank"
+            style="small"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdSiSMqfQxYEE7EKHn698mSCYqxun2tBfLhYFO4JZoDw87ozg/viewform?usp=header"
+          >
             Relatar problema/sugestão
           </FooterLink>
         </nav>

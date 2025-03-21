@@ -107,12 +107,19 @@ export const BacktestCharts = ({
   }, [chartsDatas, benchmark.data, selic.data]);
 
   if (!processedData || benchmark.isLoading) {
-    return <Spin />;
+    return (
+      <div className="w-full flex flex-col items-center justify-center">
+        <p className="font-poppins font-medium animate-pulse">
+          Buscando índices...
+        </p>
+        <Spin />
+      </div>
+    );
   }
 
-  const pandemicStressData = [
-    extractPandemicStress({ timelineData: processedData.timelineData }),
-  ];
+  const pandemicStressData = extractPandemicStress({
+    timelineData: processedData.timelineData,
+  });
 
   return (
     <section>
@@ -122,7 +129,7 @@ export const BacktestCharts = ({
           <CardBackTestResults />
         </>
       )}
-      <main className="flex flex-col gap-4">
+      <main className="flex flex-col gap-4 mt-4">
         <SummaryTable tableData={processedData.totalCalcsData} />
         <DonutChart chartData={processedData.donutData} />
         <TimelineChart chartData={processedData.timelineData} />
